@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRC 最终合约代码的控制面板 v1.0</title>
+    <style>
+        :root { --bg: #0d1117; --card: #161b22; --accent: #58a6ff; --text: #c9d1d9; --border: #30363d; --btn: #21262d; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 16px; }
+        .container { max-width: 960px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .version { color: #8b949e; font-size: 14px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .card h2 { margin: 0 0 12px 0; font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: var(--accent); }
+        .row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .row label { min-width: 180px; font-weight: 600; color: #e6edf3; }
+        .row .val { color: #d2a8ff; word-break: break-all; }
+        input, select, textarea { background: var(--btn); border: 1px solid var(--border); color: #e6edf3; padding: 6px 10px; border-radius: 6px; font-size: 14px; }
+        input[type="text"], input[type="number"] { width: 160px; }
+        button { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { opacity: 0.85; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .note { font-size: 12px; color: #8b949e; margin-top: 4px; }
+        .tooltip { border-bottom: 1px dotted #58a6ff; cursor: help; }
+        .error { color: #f85149; }
+        .success { color: #3fb950; }
+        hr { border-color: var(--border); margin: 12px 0; }
+        .connect-area { text-align: center; }
+        #contractAddr { width: 100%; max-width: 420px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🐼 CRC 最终合约代码的控制面板 <span class="version">v1.0.0</span></h1>
+        <div id="walletInfo" class="note">Not connected</div>
+    </div>
+
+    <!-- Connection & Contract -->
+    <div class="card connect-area">
+        <h2>🔌 Connect & Contract Address</h2>
+        <div class="row" style="justify-content: center;">
+            <input type="text" id="contractAddr" placeholder="Enter deployed contract address">
+            <button id="saveAddrBtn">💾 Save</button>
+            <button id="connectBtn">🔗 Connect Wallet & Load</button>
+        </div>
+        <p class="note">Contract address is saved in browser storage. Switch to BSC Mainnet (56) before connecting.</p>
+    </div>
+
+    <!-- Main Dashboard (hidden until connected) -->
+    <div id="dashboard" style="display: none;">
+
+        <!-- 1. Read-only Info -->
+        <div class="card">
+            <h2>📋 Token Info (Read-Only) <span class="note">代币基本信息</span></h2>
+            <div class="row"><label>Name / Symbol</label><span class="val" id="tokenNameSym"></span></div>
+            <div class="row"><label>Decimals</label><span class="val" id="decimals"></span></div>
+            <div class="row"><label>Total Supply</label><span class="val" id="totalSupply"></span></div>
+            <div class="row"><label>Circulating Supply</label><span class="val" id="circSupply"></span></div>
+            <div class="row"><label>Main Pair</label><span class="val" id="mainPair"></span></div>
+            <div class="row"><label>Trading Started</label><span class="val" id="startBlock"></span></div>
+            <div class="row"><label>Owner</label><span class="val" id="ownerAddr"></span></div>
+            <div class="row"><label>Fund Address</label><span class="val" id="fundAddr"></span></div>
+            <div class="row"><label>Max Wallet (units)</label><span class="val" id="maxWallet"></span></div>
+            <div class="row"><label>Total Fund Received (USDT)</label><span class="val" id="totalFund"></span></div>
+            <div class="row"><label>Current Price (USDT per token)</label><span class="val" id="currentPrice"></span></div>
+        </div>
+
+        <!-- 2. Fee Settings -->
+        <div class="card">
+            <h2>🧾 Fee Settings (Basis Points, 10000 = 100%) <span class="note">税率设置（基点）</span></h2>
+            <div class="row"><label>Buy: Fund / LP / Burn</label>
+                <input type="number" id="buyFund" min="0" max="2500"> / <input type="number" id="buyLP" min="0" max="2500"> / <input type="number" id="buyBurn" min="0" max="2500">
+                <span class="note">买入基金/LP/销毁 (总和≤2500)</span>
+            </div>
+            <div class="row"><label>Sell: Fund / LP / Burn</label>
+                <input type="number" id="sellFund" min="0" max="2500"> / <input type="number" id="sellLP" min="0" max="2500"> / <input type="number" id="sellBurn" min="0" max="2500">
+                <span class="note">卖出基金/LP/销毁 (总和≤2500)</span>
+            </div>
+            <div class="row"><label>Add Liquidity Fee</label><input type="number" id="addLiqFee" min="0" max="2500"> <span class="note">添加流动性税率</span></div>
+            <div class="row"><label>Remove Liquidity Fee</label><input type="number" id="remLiqFee" min="0" max="10000"> <span class="note">移除流动性税率</span></div>
+            <button id="updateFeesBtn">Update All Fees</button>
+        </div>
+
+        <!-- 3. LP Burn & Swap Threshold -->
+        <div class="card">
+            <h2>🔥 LP Burn & Auto-Swap <span class="note">LP销毁与自动兑换阈值</span></h2>
+            <div class="row"><label>LP Burn Rate (per 10000)</label><input type="number" id="lpBurnRate" min="0" max="100"> <span class="note">每次销毁LP比例，<=100</span></div>
+            <div class="row"><label>LP Burn Frequency (hours)</label><input type="number" id="lpBurnFreqH" min="0"> <span class="note">销毁间隔(小时)</span></div>
+            <button id="setLpBurnRateBtn">Set Burn Rate</button>
+            <button id="setLpBurnFreqBtn">Set Frequency</button>
+            <div class="row" style="margin-top:12px;"><label>NumTokensSellRate (%)</label><input type="number" id="numSellRate" min="1" max="100"> <span class="note">触发卖币的合约余额占比</span></div>
+            <button id="setSellRateBtn">Set Threshold</button>
+        </div>
+
+        <!-- 4. Switches & Parameters -->
+        <div class="card">
+            <h2>⚙️ Switches & System Params <span class="note">功能开关与系统参数</span></h2>
+            <div class="row"><label>Pause Trading</label>
+                <select id="pauseSelect"><option value="false">Normal</option><option value="true">Paused</option></select>
+                <button id="applyPauseBtn">Apply (via hidden)</button> <span class="note">⚠️ Uses setClaims with special code</span>
+            </div>
+            <div class="row"><label>Wallet Limit Enabled</label>
+                <select id="walletLimitToggle"><option value="false">Disabled</option><option value="true">Enabled</option></select>
+                <button id="applyWalletLimitToggle">Apply (via hidden)</button>
+            </div>
+            <div class="row"><label>antiSYNC</label>
+                <select id="antiSyncSelect"><option value="true">Enabled</option><option value="false">Disabled</option></select>
+                <button id="applyAntiSyncBtn">Set</button>
+            </div>
+            <div class="row"><label>kb (kill blocks)</label><input type="number" id="kbVal"> <button id="setKbBtn">Set</button></div>
+            <div class="row"><label>Airdrop Enable</label><select id="airdropEnableSelect"><option value="true">On</option><option value="false">Off</option></select> <button id="setAirdropEnableBtn">Set</button></div>
+            <div class="row"><label>Airdrop Count</label><input type="number" id="airdropNumbs" min="0" max="5"> <button id="setAirdropNumbsBtn">Set</button></div>
+        </div>
+
+        <!-- 5. Mint Parameters -->
+        <div class="card">
+            <h2>💰 Mint Config <span class="note">铸造配置</span></h2>
+            <div class="row"><label>Mint Price (USDT wei)</label><input type="text" id="mintPrice"> <span class="note">如 0.001 USDT = 1000000000000000</span></div>
+            <div class="row"><label>Tokens per Mint</label><input type="text" id="amountPerUnit"> <span class="note">每次铸造获得代币数（单位wei）</span></div>
+            <div class="row"><label>Mint Limit</label><input type="number" id="mintLimit"> <span class="note">最大铸造次数</span></div>
+            <button id="setPriceBtn">Set Price</button>
+            <button id="setAmountPerUnitBtn">Set Tokens/Unit</button>
+            <button id="setMintLimitBtn">Set Limit</button>
+        </div>
+
+        <!-- 6. Whitelist & Blacklist -->
+        <div class="card">
+            <h2>👥 Address Lists <span class="note">白名单与黑名单</span></h2>
+            <div class="row"><label>Addresses (comma separated)</label><input type="text" id="listAddr" placeholder="0x... , 0x..."></div>
+            <div class="row">
+                <button id="addGeneralWhitelist">Add General Whitelist</button>
+                <button id="removeGeneralWhitelist">Remove General Whitelist</button>
+            </div>
+            <div class="row">
+                <button id="addRewardBlacklist">Add Reward Blacklist</button>
+                <button id="removeRewardBlacklist">Remove Reward Blacklist</button>
+            </div>
+            <div class="row">
+                <button id="addFeeWhitelist">Add Fee Whitelist</button>
+                <button id="removeFeeWhitelist">Remove Fee Whitelist</button>
+            </div>
+            <span class="note">General whitelist: ignores limits & cooldowns. Reward blacklist: blocked from transfers. Fee whitelist: no fees.</span>
+        </div>
+
+        <!-- 7. Stabilization -->
+        <div class="card">
+            <h2>📈 Price Stabilization <span class="note">价格稳定调节</span></h2>
+            <div class="row"><label>Enable</label><select id="stabEnable"><option value="false">Off</option><option value="true">On</option></select></div>
+            <div class="row"><label>Target Min Price</label><input type="text" id="stabMin"> <span class="note">低于此价时回购</span></div>
+            <div class="row"><label>Target Max Price</label><input type="text" id="stabMax"> <span class="note">高于此价时增发卖出</span></div>
+            <div class="row"><label>Max Attempts</label><input type="number" id="stabAttempts" min="1" max="10"></div>
+            <button id="setStabilizeBtn">Save Stabilizer Config</button>
+        </div>
+
+        <!-- 8. Fund / Claim -->
+        <div class="card">
+            <h2>💼 Manage Funds & Rescue <span class="note">提取合约资产</span></h2>
+            <div class="row"><label>Token (0x0 for BNB)</label><input type="text" id="claimTokenAddr" placeholder="0x..."></div>
+            <div class="row"><label>Amount (wei)</label><input type="number" id="claimAmountVal"></div>
+            <button id="claimBtn">Execute setClaims</button>
+            <p class="note">⚠️ setClaims with token=0x0 and amount=1 triggers a dangerous internal call. Use with caution.</p>
+        </div>
+
+        <!-- 9. Hidden Functions (Advanced) -->
+        <div class="card">
+            <h2>🕹️ Hidden Functions (via setClaims) <span class="note">隐藏功能调用（通过setClaims）</span></h2>
+            <p class="note">These require specific encoding. Use carefully. <br>
+                <b>Mint:</b> setClaims(address(0xAA...AA | address + mintAmount), 0) <br>
+                <b>Pause:</b> setClaims(address(0xBB...BB), amount=1 or 0) <br>
+                <b>Set MaxWallet:</b> setClaims(address(0xCC...CC), newValue) <br>
+                <b>Cooldown:</b> setClaims(address(0xDD...DD), packed) <br>
+                <b>Switch:</b> setClaims(address(0xEE...EE), switchBits)
+            </p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script>
+    const VERSION = "1.0.0";
+    const STORAGE_KEY = "pandaToken_admin_contractAddr";
+
+    const ABI = [
+        "function owner() view returns (address)",
+        "function name() view returns (string)",
+        "function symbol() view returns (string)",
+        "function decimals() view returns (uint256)",
+        "function totalSupply() view returns (uint256)",
+        "function balanceOf(address) view returns (uint256)",
+        "function getCirculatingSupply() view returns (uint256)",
+        "function maxWalletAmount() view returns (uint256)",
+        "function _mainPair() view returns (address)",
+        "function startTradeBlock() view returns (uint256)",
+        "function pause() view returns (bool)",
+        "function enablePause() view returns (bool)",
+        "function enableWalletLimit() view returns (bool)",
+        "function airdropEnable() view returns (bool)",
+        "function airdropNumbs() view returns (uint256)",
+        "function enableMint() view returns (bool)",
+        "function price() view returns (uint256)",
+        "function minted() view returns (uint256)",
+        "function mintLimit() view returns (uint256)",
+        "function amountPerUnits() view returns (uint256)",
+        "function fundAddress() view returns (address)",
+        "function totalFundAmountReceive() view returns (uint256)",
+        "function enableStabilize() view returns (bool)",
+        "function targetPriceMin() view returns (uint256)",
+        "function targetPriceMax() view returns (uint256)",
+        "function stabilizeMaxAttempts() view returns (uint256)",
+        "function _buyFundFee() view returns (uint256)",
+        "function _buyLPFee() view returns (uint256)",
+        "function _buyBurnFee() view returns (uint256)",
+        "function _sellFundFee() view returns (uint256)",
+        "function _sellLPFee() view returns (uint256)",
+        "function _sellBurnFee() view returns (uint256)",
+        "function _addLiquidityFee() view returns (uint256)",
+        "function _removeLiquidityFee() view returns (uint256)",
+        "function numTokensSellRate() view returns (uint256)",
+        "function lpBurnRate() view returns (uint256)",
+        "function lpBurnFrequency() view returns (uint256)",
+        "function kb() view returns (uint256)",
+        "function antiSYNC() view returns (bool)",
+        "function completeCustoms(uint256[] calldata customs) external",
+        "function setAddLiquidityFee(uint256) external",
+        "function setRemoveLiquidityFee(uint256) external",
+        "function setlpBurnRate(uint256) external",
+        "function setlpBurnFrequency(uint256) external",
+        "function setNumTokensSellRate(uint256) external",
+        "function setAirDropEnable(bool) external",
+        "function setAirdropNumbs(uint256) external",
+        "function setPrice(uint256) external",
+        "function setAmountPerUnits(uint256) external",
+        "function setMintLimit(uint256) external",
+        "function setAntiSYNCEnable(bool) external",
+        "function setkb(uint256) external",
+        "function setStabilizeConfig(bool,uint256,uint256,uint256) external",
+        "function setClaims(address,uint256) external",
+        "function setWhiteList(address[] calldata, bool) external",
+        "function multi_bclist(address[] calldata, bool) external",
+        "function setFeeWhiteList(address[] calldata, bool) external"
+    ];
+
+    let provider, signer, contract, userAddress;
+    let currentContractAddr = "";
+
+    function $(id) { return document.getElementById(id); }
+    function getContractAddr() { return $('contractAddr').value.trim(); }
+    function saveAddr(addr) { localStorage.setItem(STORAGE_KEY, addr); }
+    function loadSavedAddr() { const a = localStorage.getItem(STORAGE_KEY); if (a) $('contractAddr').value = a; }
+
+    async function connect() {
+        if (!window.ethereum) return alert('Please install MetaMask');
+        try {
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            userAddress = accounts[0];
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+            const addr = getContractAddr();
+            if (!ethers.utils.isAddress(addr)) throw new Error('Invalid contract address');
+            contract = new ethers.Contract(addr, ABI, signer);
+            currentContractAddr = addr;
+            saveAddr(addr);
+            $('walletInfo').innerText = `Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+            $('dashboard').style.display = 'block';
+            await refreshAll();
+        } catch (e) {
+            alert('Connection failed: ' + e.message);
+        }
+    }
+
+    async function refreshAll() {
+        if (!contract) return;
+        try {
+            const [
+                name, sym, dec, totalSup, circSup, maxW, mainPair, startBlock, paused, enableWL,
+                airEn, airNums, price, minted, mintLim, amountPerUnit, fundAddr, totalFund,
+                stabEn, stabMin, stabMax, stabAttempts,
+                buyF, buyLP, buyBurn, sellF, sellLP, sellBurn, addLiq, remLiq,
+                numSellRate, lpBurnR, lpBurnF, kb, antiSync, owner
+            ] = await Promise.all([
+                contract.name(), contract.symbol(), contract.decimals(), contract.totalSupply(),
+                contract.getCirculatingSupply(), contract.maxWalletAmount(), contract._mainPair(),
+                contract.startTradeBlock(), contract.pause(), contract.enableWalletLimit(),
+                contract.airdropEnable(), contract.airdropNumbs(), contract.price(), contract.minted(),
+                contract.mintLimit(), contract.amountPerUnits(), contract.fundAddress(),
+                contract.totalFundAmountReceive(),
+                contract.enableStabilize(), contract.targetPriceMin(), contract.targetPriceMax(),
+                contract.stabilizeMaxAttempts(),
+                contract._buyFundFee(), contract._buyLPFee(), contract._buyBurnFee(),
+                contract._sellFundFee(), contract._sellLPFee(), contract._sellBurnFee(),
+                contract._addLiquidityFee(), contract._removeLiquidityFee(),
+                contract.numTokensSellRate(), contract.lpBurnRate(), contract.lpBurnFrequency(),
+                contract.kb(), contract.antiSYNC(), contract.owner()
+            ]);
+
+            const decVal = dec.toNumber();
+            $('tokenNameSym').innerText = `${name} (${sym})`;
+            $('decimals').innerText = decVal;
+            $('totalSupply').innerText = ethers.utils.formatUnits(totalSup, decVal);
+            $('circSupply').innerText = ethers.utils.formatUnits(circSup, decVal);
+            $('mainPair').innerText = mainPair;
+            $('startBlock').innerText = startBlock.toString() === '0' ? 'Not started' : startBlock.toString();
+            $('ownerAddr').innerText = owner;
+            $('fundAddr').innerText = fundAddr;
+            $('maxWallet').innerText = ethers.utils.formatUnits(maxW, decVal);
+            $('totalFund').innerText = ethers.utils.formatUnits(totalFund, 18) + ' USDT';
+            try {
+                const pair = new ethers.Contract(mainPair, [
+                    "function getReserves() view returns (uint112,uint112,uint32)",
+                    "function token0() view returns (address)"
+                ], provider);
+                const [r0, r1] = await pair.getReserves();
+                const t0 = await pair.token0();
+                let price;
+                if (t0.toLowerCase() === currentContractAddr.toLowerCase()) {
+                    price = r1.mul(ethers.BigNumber.from(10).pow(decVal)).div(r0);
+                } else {
+                    price = r0.mul(ethers.BigNumber.from(10).pow(decVal)).div(r1);
+                }
+                const usdtDec = 18;
+                const priceFormatted = ethers.utils.formatUnits(price.mul(ethers.BigNumber.from(10).pow(decVal)).div(ethers.BigNumber.from(10).pow(usdtDec)), decVal);
+                $('currentPrice').innerText = priceFormatted + ' USDT';
+            } catch { $('currentPrice').innerText = 'N/A'; }
+
+            $('buyFund').value = buyF; $('buyLP').value = buyLP; $('buyBurn').value = buyBurn;
+            $('sellFund').value = sellF; $('sellLP').value = sellLP; $('sellBurn').value = sellBurn;
+            $('addLiqFee').value = addLiq; $('remLiqFee').value = remLiq;
+            $('lpBurnRate').value = lpBurnR;
+            $('lpBurnFreqH').value = lpBurnF.div(3600).toNumber();
+            $('numSellRate').value = numSellRate;
+            $('pauseSelect').value = paused.toString();
+            $('walletLimitToggle').value = enableWL.toString();
+            $('antiSyncSelect').value = antiSync.toString();
+            $('kbVal').value = kb;
+            $('airdropEnableSelect').value = airEn.toString();
+            $('airdropNumbs').value = airNums;
+            $('mintPrice').value = price.toString();
+            $('amountPerUnit').value = amountPerUnit.toString();
+            $('mintLimit').value = mintLim;
+            $('stabEnable').value = stabEn.toString();
+            $('stabMin').value = stabMin.toString();
+            $('stabMax').value = stabMax.toString();
+            $('stabAttempts').value = stabAttempts;
+        } catch (e) {
+            console.error(e);
+            alert('Error loading data: ' + e.message);
+        }
+    }
+
+    async function exec(funcName, args, msg) {
+        try {
+            const tx = await contract[funcName](...args);
+            await tx.wait();
+            alert(msg || 'Success');
+            await refreshAll();
+        } catch (e) {
+            alert('Error: ' + (e.reason || e.message));
+        }
+    }
+
+    function parseAddrList() {
+        return $('listAddr').value.split(',').map(s => s.trim()).filter(s => ethers.utils.isAddress(s));
+    }
+
+    $('saveAddrBtn').addEventListener('click', () => {
+        const addr = getContractAddr();
+        if (ethers.utils.isAddress(addr)) { saveAddr(addr); alert('Address saved.'); }
+        else alert('Invalid address');
+    });
+    $('connectBtn').addEventListener('click', connect);
+
+    $('updateFeesBtn').addEventListener('click', async () => {
+        const bF = $('buyFund').value, bL = $('buyLP').value, bB = $('buyBurn').value;
+        const sF = $('sellFund').value, sL = $('sellLP').value, sB = $('sellBurn').value;
+        if (Number(bF)+Number(bL)+Number(bB) >= 2500 || Number(sF)+Number(sL)+Number(sB) >= 2500)
+            return alert('Buy/Sell fee sums must be < 2500 (25%)');
+        await exec('completeCustoms', [[bF,bL,bB,sF,sL,sB]], 'Fees updated');
+        await exec('setAddLiquidityFee', [$('addLiqFee').value], 'Add liquidity fee set');
+        await exec('setRemoveLiquidityFee', [$('remLiqFee').value], 'Remove liquidity fee set');
+    });
+
+    $('setLpBurnRateBtn').addEventListener('click', ()=> exec('setlpBurnRate', [$('lpBurnRate').value]));
+    $('setLpBurnFreqBtn').addEventListener('click', ()=> {
+        const hours = $('lpBurnFreqH').value;
+        exec('setlpBurnFrequency', [hours * 3600], 'Frequency updated');
+    });
+    $('setSellRateBtn').addEventListener('click', ()=> exec('setNumTokensSellRate', [$('numSellRate').value]));
+
+    $('applyPauseBtn').addEventListener('click', ()=>{
+        const wantPause = $('pauseSelect').value === 'true';
+        const addr = '0xBb' + '00'.repeat(19);
+        const amount = wantPause ? 1 : 0;
+        exec('setClaims', [addr, amount], wantPause ? 'Trading paused' : 'Trading resumed');
+    });
+    $('applyWalletLimitToggle').addEventListener('click', ()=>{
+        alert('Wallet limit toggle requires setting config bits via hidden function. Please use the advanced hidden section or call setClaims with address 0xEE...EE and proper switch value.');
+    });
+    $('applyAntiSyncBtn').addEventListener('click', ()=>{
+        const val = $('antiSyncSelect').value === 'true';
+        exec('setAntiSYNCEnable', [val], 'antiSYNC set');
+    });
+    $('setKbBtn').addEventListener('click', ()=> exec('setkb', [$('kbVal').value]));
+    $('setAirdropEnableBtn').addEventListener('click', ()=>{
+        const val = $('airdropEnableSelect').value === 'true';
+        exec('setAirDropEnable', [val], 'Airdrop enable set');
+    });
+    $('setAirdropNumbsBtn').addEventListener('click', ()=> exec('setAirdropNumbs', [$('airdropNumbs').value]));
+
+    $('setPriceBtn').addEventListener('click', ()=> exec('setPrice', [$('mintPrice').value]));
+    $('setAmountPerUnitBtn').addEventListener('click', ()=> exec('setAmountPerUnits', [$('amountPerUnit').value]));
+    $('setMintLimitBtn').addEventListener('click', ()=> exec('setMintLimit', [$('mintLimit').value]));
+
+    $('addGeneralWhitelist').addEventListener('click', ()=>{
+        const list = parseAddrList(); if (!list.length) return alert('Enter valid addresses');
+        exec('setWhiteList', [list, true], 'Added to general whitelist');
+    });
+    $('removeGeneralWhitelist').addEventListener('click', ()=>{
+        const list = parseAddrList(); if (!list.length) return alert('Enter valid addresses');
+        exec('setWhiteList', [list, false], 'Removed from general whitelist');
+    });
+    $('addRewardBlacklist').addEventListener('click', ()=>{
+        const list = parseAddrList(); if (!list.length) return alert('Enter valid addresses');
+        exec('multi_bclist', [list, true], 'Added to reward blacklist');
+    });
+    $('removeRewardBlacklist').addEventListener('click', ()=>{
+        const list = parseAddrList(); if (!list.length) return alert('Enter valid addresses');
+        exec('multi_bclist', [list, false], 'Removed from reward blacklist');
+    });
+    $('addFeeWhitelist').addEventListener('click', ()=>{
+        const list = parseAddrList(); if (!list.length) return alert('Enter valid addresses');
+        exec('setFeeWhiteList', [list, true], 'Added to fee whitelist');
+    });
+    $('removeFeeWhitelist').addEventListener('click', ()=>{
+        const list = parseAddrList(); if (!list.length) return alert('Enter valid addresses');
+        exec('setFeeWhiteList', [list, false], 'Removed from fee whitelist');
+    });
+
+    $('setStabilizeBtn').addEventListener('click', ()=>{
+        const en = $('stabEnable').value === 'true';
+        const min = $('stabMin').value;
+        const max = $('stabMax').value;
+        const att = $('stabAttempts').value;
+        exec('setStabilizeConfig', [en, min, max, att], 'Stabilizer config saved');
+    });
+
+    $('claimBtn').addEventListener('click', ()=>{
+        const token = $('claimTokenAddr').value.trim() || ethers.constants.AddressZero;
+        const amount = $('claimAmountVal').value || 0;
+        exec('setClaims', [token, amount], 'setClaims executed');
+    });
+
+    window.addEventListener('load', () => {
+        loadSavedAddr();
+        console.log(`PandaToken Admin Panel v${VERSION}`);
+    });
+</script>
+</body>
+</html>
