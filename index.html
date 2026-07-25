@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRC 最终合约代码的控制面板 v2.0</title>
+    <title>CRC 最终合约代码的控制面板 v3.0</title>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --accent: #58a6ff; --text: #c9d1d9; --border: #30363d; --btn-bg: #21262d; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,14 +27,13 @@
         .connect-area input { width: 100%; max-width: 440px; }
         .err { color: #f85149; }
         .success { color: #3fb950; }
-        hr { border-color: var(--border); margin: 12px 0; }
         .sub-card { background: #0d1117; padding: 10px; border-radius: 6px; margin: 10px 0; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>🐼 CRC 最终合约代码的控制面板 <span class="version">v2.0</span></h1>
+        <h1>🐼 CRC 最终合约代码的控制面板 <span class="version">v3.0</span></h1>
         <div id="walletInfo" class="note">未连接</div>
     </div>
 
@@ -58,16 +57,16 @@
             <div class="row"><label>精度 (decimals)</label><span class="val" id="decimals"></span></div>
             <div class="row"><label>总供应量</label><span class="val" id="totalSupply"></span></div>
             <div class="row"><label>流通量</label><span class="val" id="circSupply"></span></div>
-            <div class="row"><label>主交易对</label><span class="val" id="mainPair"></span></div>
-            <div class="row"><label>合约拥有者</label><span class="val" id="ownerAddr"></span></div>
-            <div class="row"><label>基金地址</label><span class="val" id="fundAddr"></span></div>
+            <div class="row"><label>主交易对 (_mainPair)</label><span class="val" id="mainPair"></span></div>
+            <div class="row"><label>合约拥有者 (owner)</label><span class="val" id="ownerAddr"></span></div>
+            <div class="row"><label>基金地址 (fundAddress)</label><span class="val" id="fundAddr"></span></div>
             <div class="row"><label>零地址 (deadAddress)</label><span class="val" id="deadAddr"></span></div>
             <div class="row"><label>交易用代币 (currency)</label><span class="val" id="currencyAddr"></span></div>
             <div class="row"><label>路由器 (_swapRouter)</label><span class="val" id="routerAddr"></span></div>
             <div class="row"><label>代币分发器 (_tokenDistributor)</label><span class="val" id="distributorAddr"></span></div>
-            <div class="row"><label>是否为原生币交易对</label><span class="val" id="currencyIsEth"></span></div>
-            <div class="row"><label>最大钱包持仓</label><span class="val" id="maxWallet"></span></div>
-            <div class="row"><label>累计基金收入 (USDT)</label><span class="val" id="totalFund"></span></div>
+            <div class="row"><label>是否为原生币交易对 (currencyIsEth)</label><span class="val" id="currencyIsEth"></span></div>
+            <div class="row"><label>最大钱包持仓 (maxWalletAmount)</label><span class="val" id="maxWallet"></span></div>
+            <div class="row"><label>累计基金收入 (totalFundAmountReceive)</label><span class="val" id="totalFund"></span></div>
             <div class="row"><label>当前价格 (USDT/代币)</label><span class="val" id="currentPrice"></span></div>
         </div>
 
@@ -75,82 +74,76 @@
         <div class="card">
             <h2>⚙️ 合约开关状态</h2>
             <div class="row"><label>交易已启动 (startTradeBlock)</label><span class="val" id="startBlock"></span></div>
-            <div class="row"><label>当前交易暂停</label><span class="val" id="pauseFlag"></span></div>
-            <div class="row"><label>暂停功能启用</label><span class="val" id="enablePause"></span></div>
-            <div class="row"><label>奖励黑名单启用</label><span class="val" id="enableRewardList"></span></div>
-            <div class="row"><label>持仓限制启用</label><span class="val" id="enableWalletLimit"></span></div>
-            <div class="row"><label>场外交易启用</label><span class="val" id="enableOffTrade"></span></div>
-            <div class="row"><label>开盘杀区块启用</label><span class="val" id="enableKillBlock"></span></div>
-            <div class="row"><label>允许修改税率</label><span class="val" id="enableChangeTax"></span></div>
-            <div class="row"><label>铸造启用</label><span class="val" id="enableMint"></span></div>
-            <div class="row"><label>空投启用</label><span class="val" id="airdropEnable"></span></div>
+            <div class="row"><label>当前交易暂停 (pause)</label><span class="val" id="pauseFlag"></span></div>
+            <div class="row"><label>暂停功能启用 (enablePause)</label><span class="val" id="enablePause"></span></div>
+            <div class="row"><label>奖励黑名单启用 (enableRewardList)</label><span class="val" id="enableRewardList"></span></div>
+            <div class="row"><label>持仓限制启用 (enableWalletLimit)</label><span class="val" id="enableWalletLimit"></span></div>
+            <div class="row"><label>场外交易启用 (enableOffTrade)</label><span class="val" id="enableOffTrade"></span></div>
+            <div class="row"><label>开盘杀区块启用 (enableKillBlock)</label><span class="val" id="enableKillBlock"></span></div>
+            <div class="row"><label>允许修改税率 (enableChangeTax)</label><span class="val" id="enableChangeTax"></span></div>
+            <div class="row"><label>铸造启用 (enableMint)</label><span class="val" id="enableMint"></span></div>
+            <div class="row"><label>空投启用 (airdropEnable)</label><span class="val" id="airdropEnable"></span></div>
             <div class="row"><label>antiSYNC</label><span class="val" id="antiSync"></span></div>
-            <div class="row"><label>稳定调节启用</label><span class="val" id="enableStabilize"></span></div>
+            <div class="row"><label>稳定调节启用 (enableStabilize)</label><span class="val" id="enableStabilize"></span></div>
         </div>
 
-        <!-- ========== 3. 税率设置 ========== -->
+        <!-- ========== 3. 税率设置（隐藏税率无法读取，只能设置） ========== -->
         <div class="card">
-            <h2>🧾 税率设置（基点，10000=100%）</h2>
-            <div class="row"><label>当前买入：基金 / LP / 销毁</label>
-                <span class="val" id="buyFeesDisplay"></span>
-            </div>
-            <div class="row"><label>新买入税率</label>
+            <h2>🧾 税率设置（基点，10000=100%）<span class="note">⚠️ 当前税率无法从链上直接读取，仅可设置新值</span></h2>
+            <div class="row"><label>新买入税率：基金 / LP / 销毁</label>
                 <input type="number" id="buyFund" min="0" max="2500"> /
                 <input type="number" id="buyLP" min="0" max="2500"> /
                 <input type="number" id="buyBurn" min="0" max="2500">
-                <span class="note">基金 / LP / 销毁 (和≤2500)</span>
+                <span class="note">总和必须小于 2500</span>
             </div>
-            <div class="row"><label>当前卖出：基金 / LP / 销毁</label>
-                <span class="val" id="sellFeesDisplay"></span>
-            </div>
-            <div class="row"><label>新卖出税率</label>
+            <div class="row"><label>新卖出税率：基金 / LP / 销毁</label>
                 <input type="number" id="sellFund" min="0" max="2500"> /
                 <input type="number" id="sellLP" min="0" max="2500"> /
                 <input type="number" id="sellBurn" min="0" max="2500">
-                <span class="note">基金 / LP / 销毁 (和≤2500)</span>
+                <span class="note">总和必须小于 2500</span>
             </div>
-            <div class="row"><label>当前添加流动性税率</label><span class="val" id="addLiqFeeDisplay"></span><input type="number" id="addLiqFee" min="0" max="2500"></div>
-            <div class="row"><label>当前移除流动性税率</label><span class="val" id="remLiqFeeDisplay"></span><input type="number" id="remLiqFee" min="0" max="10000"></div>
+            <div class="row"><label>新添加流动性税率</label><input type="number" id="addLiqFee" min="0" max="2500"></div>
+            <div class="row"><label>新移除流动性税率</label><input type="number" id="remLiqFee" min="0" max="10000"></div>
             <button id="updateAllFeesBtn">一键更新全部税率</button>
-            <p class="note">点击后依次调用 completeCustoms、setAddLiquidityFee、setRemoveLiquidityFee</p>
+            <p class="note">依次调用 completeCustoms（买卖税率）、setAddLiquidityFee、setRemoveLiquidityFee</p>
         </div>
 
         <!-- ========== 4. LP销毁与自动兑换 ========== -->
         <div class="card">
             <h2>🔥 LP销毁与自动兑换</h2>
-            <div class="row"><label>LP销毁率 (万分比) 当前：</label><span class="val" id="lpBurnRateDisplay"></span><input type="number" id="lpBurnRate" min="0" max="100"> <button id="setLpBurnRateBtn">设置</button></div>
-            <div class="row"><label>LP销毁间隔 当前：</label><span class="val" id="lpBurnFreqDisplay"></span></div>
+            <div class="row"><label>LP销毁率 (lpBurnRate) 当前：</label><span class="val" id="lpBurnRateDisplay"></span><input type="number" id="lpBurnRate" min="0" max="100"> <button id="setLpBurnRateBtn">设置</button></div>
+            <div class="row"><label>LP销毁间隔 (lpBurnFrequency) 当前：</label><span class="val" id="lpBurnFreqDisplay"></span></div>
             <div class="row"><label>新间隔 (小时)</label><input type="number" id="lpBurnFreqH" min="0"> <button id="setLpBurnFreqBtn">设置</button></div>
-            <div class="row"><label>上次销毁时间</label><span class="val" id="lastLpBurnTime"></span></div>
+            <div class="row"><label>上次销毁时间 (lastLpBurnTime)</label><span class="val" id="lastLpBurnTime"></span></div>
             <div class="row"><label>兑换触发阈值 (numTokensSellRate) 当前：</label><span class="val" id="numSellRateDisplay"></span><input type="number" id="numSellRate" min="1" max="100"> <button id="setNumSellRateBtn">设置</button></div>
         </div>
 
         <!-- ========== 5. 铸造参数 ========== -->
         <div class="card">
             <h2>💰 铸造参数</h2>
-            <div class="row"><label>当前铸造价格 (USDT wei)</label><span class="val" id="priceDisplay"></span><input type="text" id="priceInput"> <button id="setPriceBtn">设置</button></div>
-            <div class="row"><label>当前每次获得代币 (wei)</label><span class="val" id="amountPerUnitDisplay"></span><input type="text" id="amountPerUnitInput"> <button id="setAmountPerUnitBtn">设置</button></div>
-            <div class="row"><label>当前铸造总次数上限</label><span class="val" id="mintLimitDisplay"></span><input type="number" id="mintLimitInput"> <button id="setMintLimitBtn">设置</button></div>
-            <div class="row"><label>已铸造次数</label><span class="val" id="mintedDisplay"></span></div>
+            <div class="row"><label>当前铸造价格 (price) (USDT wei)</label><span class="val" id="priceDisplay"></span><input type="text" id="priceInput"> <button id="setPriceBtn">设置</button></div>
+            <div class="row"><label>当前每次获得代币 (amountPerUnits) (wei)</label><span class="val" id="amountPerUnitDisplay"></span><input type="text" id="amountPerUnitInput"> <button id="setAmountPerUnitBtn">设置</button></div>
+            <div class="row"><label>当前铸造总次数上限 (mintLimit)</label><span class="val" id="mintLimitDisplay"></span><input type="number" id="mintLimitInput"> <button id="setMintLimitBtn">设置</button></div>
+            <div class="row"><label>已铸造次数 (minted)</label><span class="val" id="mintedDisplay"></span></div>
         </div>
 
         <!-- ========== 6. 稳定调节 ========== -->
         <div class="card">
             <h2>📈 价格稳定调节</h2>
-            <div class="row"><label>启用稳定调节</label><select id="stabEnable"><option value="false">关闭</option><option value="true">开启</option></select></div>
-            <div class="row"><label>目标最低价 (USDT wei)</label><input type="text" id="stabMin"> <span class="note">低于此价时回购</span></div>
-            <div class="row"><label>目标最高价 (USDT wei)</label><input type="text" id="stabMax"> <span class="note">高于此价时增发卖出</span></div>
-            <div class="row"><label>最大尝试次数</label><input type="number" id="stabAttempts" min="1" max="10"></div>
+            <div class="row"><label>启用稳定调节 (enableStabilize)</label><select id="stabEnable"><option value="false">关闭</option><option value="true">开启</option></select></div>
+            <div class="row"><label>目标最低价 (targetPriceMin) (USDT wei)</label><input type="text" id="stabMin"> <span class="note">低于此价时回购</span></div>
+            <div class="row"><label>目标最高价 (targetPriceMax) (USDT wei)</label><input type="text" id="stabMax"> <span class="note">高于此价时增发卖出</span></div>
+            <div class="row"><label>最大尝试次数 (stabilizeMaxAttempts)</label><input type="number" id="stabAttempts" min="1" max="10"></div>
             <button id="setStabilizeBtn">保存稳定配置</button>
         </div>
 
-        <!-- ========== 7. 系统参数设置 ========== -->
+        <!-- ========== 7. 系统参数 ========== -->
         <div class="card">
             <h2>🔧 系统参数</h2>
-            <div class="row"><label>杀区块数 (kb)</label><input type="number" id="kbVal"> <button id="setKbBtn">设置</button></div>
-            <div class="row"><label>空投数量</label><input type="number" id="airdropNumbs" min="0" max="5"> <button id="setAirdropNumbsBtn">设置</button></div>
-            <div class="row"><label>antiSYNC</label><select id="antiSyncSelect"><option value="true">开启</option><option value="false">关闭</option></select> <button id="setAntiSyncBtn">设置</button></div>
-            <div class="row"><label>空投功能</label><select id="airdropEnableSelect"><option value="true">开启</option><option value="false">关闭</option></select> <button id="setAirdropEnableBtn">设置</button></div>
+            <div class="row"><label>杀区块数 (kb) 当前：</label><span class="val" id="kbDisplay"></span><input type="number" id="kbVal"> <button id="setKbBtn">设置</button></div>
+            <div class="row"><label>空投数量 (airdropNumbs) 当前：</label><span class="val" id="airdropNumbsDisplay"></span><input type="number" id="airdropNumbs" min="0" max="5"> <button id="setAirdropNumbsBtn">设置</button></div>
+            <div class="row"><label>antiSYNC 当前：</label><span class="val" id="antiSyncDisplay"></span><select id="antiSyncSelect"><option value="true">开启</option><option value="false">关闭</option></select> <button id="setAntiSyncBtn">设置</button></div>
+            <div class="row"><label>空投功能 当前：</label><span class="val" id="airdropEnableDisplay"></span><select id="airdropEnableSelect"><option value="true">开启</option><option value="false">关闭</option></select> <button id="setAirdropEnableBtn">设置</button></div>
             <div class="row"><label>设置基金地址</label><input type="text" id="fundAddressInput" placeholder="0x..."> <button id="setFundAddrBtn">设置</button></div>
             <div class="row"><label>启动交易</label><button id="launchBtn">🚀 启动交易</button> <span class="note">设置 startTradeBlock，不可逆</span></div>
             <div class="row"><label>转移所有权</label><input type="text" id="newOwnerInput" placeholder="0x..."> <button id="transferOwnershipBtn">转移所有权</button></div>
@@ -203,26 +196,26 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
-    const VERSION = "2.0.0";
+    const VERSION = "3.0.0";
     const STORAGE_KEY = "crc_admin_contractAddr";
 
-    // 完整 ABI，包含所有用到的函数
+    // 严格按照合约 public/external 函数生成的 ABI
     const ABI = [
-        "function owner() view returns (address)",
         "function name() view returns (string)",
         "function symbol() view returns (string)",
         "function decimals() view returns (uint256)",
         "function totalSupply() view returns (uint256)",
         "function balanceOf(address) view returns (uint256)",
+        "function allowance(address,address) view returns (uint256)",
         "function getCirculatingSupply() view returns (uint256)",
+        "function owner() view returns (address)",
+        "function maxWalletAmount() view returns (uint256)",
         "function deadAddress() view returns (address)",
+        "function fundAddress() view returns (address)",
         "function currency() view returns (address)",
         "function _swapRouter() view returns (address)",
         "function _tokenDistributor() view returns (address)",
         "function currencyIsEth() view returns (bool)",
-        "function maxWalletAmount() view returns (uint256)",
-        "function fundAddress() view returns (address)",
-        "function totalFundAmountReceive() view returns (uint256)",
         "function _mainPair() view returns (address)",
         "function startTradeBlock() view returns (uint256)",
         "function pause() view returns (bool)",
@@ -241,6 +234,7 @@
         "function minted() view returns (uint256)",
         "function mintLimit() view returns (uint256)",
         "function amountPerUnits() view returns (uint256)",
+        "function totalFundAmountReceive() view returns (uint256)",
         "function lastLpBurnTime() view returns (uint256)",
         "function lpBurnRate() view returns (uint256)",
         "function lpBurnFrequency() view returns (uint256)",
@@ -249,14 +243,6 @@
         "function targetPriceMin() view returns (uint256)",
         "function targetPriceMax() view returns (uint256)",
         "function stabilizeMaxAttempts() view returns (uint256)",
-        "function _buyFundFee() view returns (uint256)",
-        "function _buyLPFee() view returns (uint256)",
-        "function _buyBurnFee() view returns (uint256)",
-        "function _sellFundFee() view returns (uint256)",
-        "function _sellLPFee() view returns (uint256)",
-        "function _sellBurnFee() view returns (uint256)",
-        "function _addLiquidityFee() view returns (uint256)",
-        "function _removeLiquidityFee() view returns (uint256)",
         "function _allWhiteList(address) view returns (bool)",
         "function _rewardList(address) view returns (bool)",
         "function _feeWhiteList(address) view returns (bool)",
@@ -299,7 +285,6 @@
         }
     }
 
-    // 手动连接
     async function connect() {
         if (!window.ethereum) return alert('请安装 MetaMask 钱包！');
         const addr = getAddr();
@@ -312,8 +297,7 @@
             signer = provider.getSigner();
             contract = new ethers.Contract(addr, ABI, signer);
             currentContractAddr = addr;
-            // 自动保存地址
-            saveAddr(addr);
+            saveAddr(addr); // 自动保存
             $('walletInfo').innerText = `已连接：${userAddress.slice(0,6)}...${userAddress.slice(-4)} | 合约：${addr.slice(0,6)}...`;
             $('dashboard').style.display = 'block';
             await refreshAll();
@@ -325,7 +309,7 @@
     async function refreshAll() {
         if (!contract) return;
         try {
-            const readVals = await Promise.all([
+            const reads = await Promise.all([
                 contract.name(), contract.symbol(), contract.decimals(),
                 contract.totalSupply(), contract.getCirculatingSupply(),
                 contract._mainPair(), contract.owner(), contract.fundAddress(),
@@ -337,13 +321,10 @@
                 contract.enableOffTrade(), contract.enableKillBlock(),
                 contract.enableChangeTax(), contract.enableMint(),
                 contract.airdropEnable(), contract.antiSYNC(), contract.enableStabilize(),
-                contract._buyFundFee(), contract._buyLPFee(), contract._buyBurnFee(),
-                contract._sellFundFee(), contract._sellLPFee(), contract._sellBurnFee(),
-                contract._addLiquidityFee(), contract._removeLiquidityFee(),
-                contract.lpBurnRate(), contract.lpBurnFrequency(), contract.lastLpBurnTime(),
-                contract.numTokensSellRate(), contract.kb(),
                 contract.price(), contract.minted(), contract.mintLimit(),
-                contract.amountPerUnits(),
+                contract.amountPerUnits(), contract.lpBurnRate(),
+                contract.lpBurnFrequency(), contract.lastLpBurnTime(),
+                contract.numTokensSellRate(), contract.kb(),
                 contract.targetPriceMin(), contract.targetPriceMax(),
                 contract.stabilizeMaxAttempts(), contract.airdropNumbs()
             ]);
@@ -354,11 +335,10 @@
                 maxW, totalFund,
                 startBlock, pause, enPause, enReward, enWL, enOff, enKill,
                 enTax, enMint, airEn, antiSync, enStab,
-                buyF, buyLP, buyBurn, sellF, sellLP, sellBurn, addLiq, remLiq,
-                lpBurnR, lpBurnF, lastBurn, numSellR, kb,
-                price, minted, mintLim, amountPerUnit,
+                price, minted, mintLim, amountPerUnit, lpBurnR,
+                lpBurnF, lastBurn, numSellR, kb,
                 stabMin, stabMax, stabAttempts, airNumbs
-            ] = readVals;
+            ] = reads;
 
             const decVal = dec.toNumber();
             const fmt = (v) => ethers.utils.formatUnits(v, decVal);
@@ -377,7 +357,7 @@
             $('maxWallet').innerText = fmt(maxW);
             $('totalFund').innerText = ethers.utils.formatUnits(totalFund, 18) + ' USDT';
 
-            // 价格
+            // 价格计算
             try {
                 const pair = new ethers.Contract(mainPair, [
                     "function getReserves() view returns (uint112,uint112,uint32)",
@@ -409,12 +389,6 @@
             $('antiSync').innerText = antiSync ? '开启' : '关闭';
             $('enableStabilize').innerText = enStab ? '是' : '否';
 
-            // 税率显示
-            $('buyFeesDisplay').innerText = `${buyF} / ${buyLP} / ${buyBurn}`;
-            $('sellFeesDisplay').innerText = `${sellF} / ${sellLP} / ${sellBurn}`;
-            $('addLiqFeeDisplay').innerText = addLiq.toString();
-            $('remLiqFeeDisplay').innerText = remLiq.toString();
-
             // LP相关
             $('lpBurnRateDisplay').innerText = lpBurnR.toString();
             $('lpBurnFreqDisplay').innerText = `${lpBurnF} 秒 (≈ ${(lpBurnF / 3600).toFixed(1)} 小时)`;
@@ -427,10 +401,13 @@
             $('mintLimitDisplay').innerText = mintLim.toString();
             $('mintedDisplay').innerText = minted.toString();
 
+            // 系统参数显示当前值
+            $('kbDisplay').innerText = kb.toString();
+            $('airdropNumbsDisplay').innerText = airNumbs.toString();
+            $('antiSyncDisplay').innerText = antiSync ? '开启' : '关闭';
+            $('airdropEnableDisplay').innerText = airEn ? '开启' : '关闭';
+
             // 填入输入框
-            $('buyFund').value = buyF; $('buyLP').value = buyLP; $('buyBurn').value = buyBurn;
-            $('sellFund').value = sellF; $('sellLP').value = sellLP; $('sellBurn').value = sellBurn;
-            $('addLiqFee').value = addLiq; $('remLiqFee').value = remLiq;
             $('lpBurnRate').value = lpBurnR;
             $('lpBurnFreqH').value = Math.round(lpBurnF / 3600);
             $('numSellRate').value = numSellR;
@@ -584,7 +561,6 @@
         }
     });
 
-    // 高级 setClaims
     $('claimBtn').addEventListener('click', ()=>{
         const token = $('claimToken').value.trim() || '0x0000000000000000000000000000000000000000';
         const amount = $('claimAmount').value || 0;
