@@ -135,7 +135,6 @@ const abi = [
   "function buyTriggerThreshold() view returns (uint256)",
   "function sellTriggerThreshold() view returns (uint256)",
   "function triggerActionPercent() view returns (uint256)",
-  "function nextTriggerDirection() view returns (uint8)",
   "function maxDailyTriggers() view returns (uint8)",
   "function dailyTriggerCount() view returns (uint8)",
   "function triggerCooldown() view returns (uint256)",
@@ -181,7 +180,7 @@ const abi = [
   "function setWhiteList(address[],bool) external",
   "function multi_bclist(address[],bool) external",
   "function mintTokens(address,uint256) external",
-  "function forceSwitchTriggerDirection() external",
+  "function forceResetTriggers() external",
   "function setSwapPairList(address,bool) external",
   "function setMinTransAmount(uint256) external",
   "function setFundAddress(address) external",
@@ -323,9 +322,9 @@ async function setTaxes() {
 
 // -------------------- 稳定机制 --------------------
 async function loadStabilize() {
-  const [buyAmt, sellAmt, buyTh, sellTh, perc, dir, maxD, daily, cd, cool, en] = await Promise.all([
+  const [buyAmt, sellAmt, buyTh, sellTh, perc, maxD, daily, cd, cool, en] = await Promise.all([
     contract.totalBuyAmount(), contract.totalSellAmount(), contract.buyTriggerThreshold(),
-    contract.sellTriggerThreshold(), contract.triggerActionPercent(), contract.nextTriggerDirection(),
+    contract.sellTriggerThreshold(), contract.triggerActionPercent(),
     contract.maxDailyTriggers(), contract.dailyTriggerCount(), contract.triggerCooldown(),
     contract.cooldownRemaining(), contract.enableAutoTrigger()
   ]);
@@ -335,7 +334,6 @@ async function loadStabilize() {
     <div class="data-item"><label>买入阈值</label><span>${fromWei(buyTh)} 代币</span></div>
     <div class="data-item"><label>卖出阈值</label><span>${fromWei(sellTh)} 代币</span></div>
     <div class="data-item"><label>执行百分比</label><span>${perc} (${basisToPercent(perc)})</span></div>
-    <div class="data-item"><label>当前方向</label><span>${dir==0?'买入→增发':'卖出→转奖励'}</span></div>
     <div class="data-item"><label>每日上限</label><span>${maxD}</span></div>
     <div class="data-item"><label>今日次数</label><span>${daily}</span></div>
     <div class="data-item"><label>冷却笔数</label><span>${cd}</span></div>
@@ -352,9 +350,10 @@ async function loadStabilize() {
 async function setStabilize() {
   const buy = await toWei(document.getElementById('sBuyTh').value);
   const sell = await toWei(document.getElementById('sSellTh').value);
-  const perc = document.getElementById('sPerc').value;
-  const max = document.getElementById('sMax').value;
-  const cd = document.getElementById('sCd').value;
+  const perc = parseInt(document.getElementById('sPerc').value) || 0;
+  const max = parseInt(document.getElementById('sMax').value) || 0;
+  const cd = parseInt(document.getElementById('sCd').value) || 0;
+  if (isNaN(perc) || isNaN(max) || isNaN(cd)) return alert('请输入有效整数');
   await contract.connect(signer).setAutoTriggerParams(buy, sell, perc, max, cd);
   alert('稳定参数已更新'); loadPanel('stabilize');
 }
@@ -455,11 +454,11 @@ async function setAdvanced() {
   const kb = document.getElementById('advKb').value;
   const ad = document.getElementById('advAdNum').value;
   const ns = document.getElementById('advNumSell').value;
-  if (br) await c.setlpBurnRate(br);
-  if (bf) await c.setlpBurnFrequency(bf);
-  if (kb) await c.setkb(kb);
-  if (ad) await c.setAirdropNumbs(ad);
-  if (ns) await c.setNumTokensSellRate(ns);
+  if (br) await c.setlpBurnRate(parseInt(br));
+  if (bf) await c.setlpBurnFrequency(parseInt(bf));
+  if (kb) await c.setkb(parseInt(kb));
+  if (ad) await c.setAirdropNumbs(parseInt(ad));
+  if (ns) await c.setNumTokensSellRate(parseInt(ns));
   alert('高级参数已更新'); loadPanel('advanced');
 }
 
@@ -490,7 +489,7 @@ async function loadAdmin() {
     <button onclick="resumeTx()" class="success">▶️ 恢复</button>
     <button onclick="disableWL()">🚫 取消限额</button>
     <button onclick="toggleAuto()">⚙️ 切换稳定</button>
-    <button onclick="forceSwitch()">🔄 强制切换方向</button>
+    <button onclick="forceReset()">🔄 重置累计</button>
     <hr style="width:100%; border-color:var(--border);">
     <input id="wlAddr" placeholder="地址">
     <button onclick="addWhite(true)">➕ 加白名单</button>
@@ -508,7 +507,7 @@ async function pauseTx() { await contract.connect(signer).PauseTransaction(); al
 async function resumeTx() { await contract.connect(signer).recoverTransaction(); alert('已恢复'); loadPanel('admin'); }
 async function disableWL() { await contract.connect(signer).disableWalletLimit(); alert('限额已取消'); loadPanel('admin'); }
 async function toggleAuto() { const cur = await contract.enableAutoTrigger(); await contract.connect(signer).setEnableAutoTrigger(!cur); alert('自动稳定已切换'); loadPanel('admin'); }
-async function forceSwitch() { await contract.connect(signer).forceSwitchTriggerDirection(); alert('方向已强制切换并清零'); loadPanel('stabilize'); }
+async function forceReset() { await contract.connect(signer).forceResetTriggers(); alert('买卖累计已清零'); loadPanel('stabilize'); }
 async function addWhite(enable) {
   const addr = document.getElementById('wlAddr').value;
   if (!ethers.utils.isAddress(addr)) return alert('地址无效');
