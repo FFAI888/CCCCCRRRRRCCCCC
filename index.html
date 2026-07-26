@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRC 稳定控制面板 v8.0 · PandaTokenV4 纯净重写</title>
+    <title>CRC 稳定控制面板 v9.0 · PandaTokenV4 完全对齐</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js">
     </script>
     <style>
@@ -149,13 +149,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🛡️ CRC 控制面板 v8.0 · 纯净映射</h1>
+            <h1>🛡️ CRC 控制面板 v9.0 · 完全对齐</h1>
             <div><button id="connectWallet" class="success">🔌 连接钱包</button> <span id="walletAddress"></span></div>
         </div>
         <div class="card">
-            <div class="desc">输入合约地址，所有按钮1:1对应合约函数。代币数量输入<b>普通数字</b>（如1000），自动转为最小单位。LP个数自动转为18位精度。</div>
+            <div class="desc">输入 <b>PandaTokenV4</b> 合约地址。所有按钮严格对应合约函数。代币数量输入普通数字，自动转换。</div>
             <div class="input-group">
-                <input id="contractAddress" placeholder="0x..." style="flex:1;">
+                <input id="contractAddress" placeholder="合约地址 (0x...)" style="flex:1;">
                 <button id="loadContract" class="success">📦 加载</button>
                 <button id="saveAddress">💾 保存</button>
                 <button id="autoLoadBtn">⚡ 加载上次</button>
@@ -175,7 +175,7 @@
         <!-- 面板们 -->
         <div id="panel-token" class="card"><h2>📊 代币数据</h2><div class="data-grid" id="tokenData"></div></div>
         <div id="panel-tax" class="card hidden"><h2>🧾 税率</h2><div class="data-grid" id="taxData"></div>
-            <h3>修改交易税率 (6项,基点)</h3><div class="input-group" id="taxSetters"></div>
+            <h3>修改交易税率 (6项基点) <span style="font-size:0.8rem;">— completeCustoms(uint256[])</span></h3><div class="input-group" id="taxSetters"></div>
             <h3>修改流动性税率</h3><div class="input-group" id="liqTaxSetters"></div></div>
         <div id="panel-stabilize" class="card hidden"><h2>⚖️ 稳定机制</h2><div class="data-grid" id="stabilizeData"></div>
             <h3>每日触发</h3><div class="data-grid" id="dailyTriggerData"></div>
@@ -184,15 +184,16 @@
             <h3>增发扫描 <button id="quickScanBtn">⚡快速</button> <button id="fullScanBtn">🔍完整</button></h3>
             <div class="progress"><div id="progressBar" style="height:8px;background:var(--accent);width:0%;"></div></div>
             <div id="scanResult"></div>
-            <h3>设置参数 (阈值:代币个数, 百分比:基点, 上限:整数)</h3><div class="input-group" id="stabilizeSetters"></div>
+            <h3>设置参数 <span style="font-size:0.8rem;">(阈值:代币个数, 百分比:基点, 上限:整数)</span> — setAutoTriggerParams</h3>
+            <div class="input-group" id="stabilizeSetters"></div>
             <div class="input-group"><button id="toggleAutoBtn">🔄 切换自动</button><button id="forceResetStateBtn" class="danger">🔴 重置状态</button></div>
         </div>
         <div id="panel-lp" class="card hidden"><h2>💧 LP挖矿</h2><div class="data-grid" id="lpData"></div>
-            <h3>设置 (奖励:代币, 最低LP:LP个数, 上级:代币)</h3><div class="input-group" id="lpSetters"></div>
-            <h3>排除/恢复</h3><div class="input-group" id="lpExcludeSetters"></div>
+            <h3>设置 (奖励基数:代币, 最低LP:LP个数(自动18位), 上级持仓:代币)</h3><div class="input-group" id="lpSetters"></div>
+            <h3>排除/恢复 LP 提供者</h3><div class="input-group" id="lpExcludeSetters"></div>
             <h3>LP列表 <button id="scanLpProviders">扫描</button></h3><div id="lpProvidersList"></div></div>
         <div id="panel-invite" class="card hidden"><h2>👥 邀请</h2><div class="data-grid" id="inviteData"></div>
-            <h3>设置 (比例和=100%)</h3><div class="input-group" id="inviteSetters"></div>
+            <h3>设置 (比例和=100%) — changeInviteRate</h3><div class="input-group" id="inviteSetters"></div>
             <h3>查询</h3><div class="input-group" id="inviteQuery"></div><div id="inviteQueryResult" class="event-log"></div></div>
         <div id="panel-advanced" class="card hidden"><h2>⚙️ 高级</h2><div class="data-grid" id="advancedData"></div>
             <h3>设置</h3><div class="input-group" id="advancedSetters"></div>
@@ -217,6 +218,7 @@
                 currDec = 18,
                 lpDist = "";
 
+            // 完整 ABI（与合约逐字段对齐）
             const abi = [
                 "function name() view returns (string)",
                 "function symbol() view returns (string)",
@@ -231,6 +233,7 @@
                 "function _rewardList(address) view returns (bool)",
                 "function enableMint() view returns (bool)",
                 "function enablePause() view returns (bool)",
+                "function enableRewardList() view returns (bool)",
                 "function enableWalletLimit() view returns (bool)",
                 "function pause() view returns (bool)",
                 "function enableChangeTax() view returns (bool)",
@@ -378,7 +381,7 @@
                 const a = document.getElementById('contractAddress').value.trim();
                 if (!ethers.utils.isAddress(a)) return alert('无效地址');
                 currentAddr = a;
-                localStorage.setItem('crc8', a);
+                localStorage.setItem('crc9', a);
                 document.getElementById('contractStatus').textContent = '加载中...';
                 try {
                     const code = await retry(() => provider.getCode(a));
@@ -396,9 +399,9 @@
                     document.querySelector('.tab[data-tab="token"]').click();
                 } catch (e) { document.getElementById('contractStatus').textContent = '❌ ' + e.message; }
             };
-            document.getElementById('saveAddress').onclick = () => localStorage.setItem('crc8', document.getElementById(
+            document.getElementById('saveAddress').onclick = () => localStorage.setItem('crc9', document.getElementById(
                 'contractAddress').value.trim());
-            document.getElementById('autoLoadBtn').onclick = () => { const s = localStorage.getItem('crc8'); if (s) { document
+            document.getElementById('autoLoadBtn').onclick = () => { const s = localStorage.getItem('crc9'); if (s) { document
                     .getElementById('contractAddress').value = s;
                     document.getElementById('loadContract').click(); } else alert('无保存'); };
 
@@ -448,13 +451,12 @@
                     '✅' : '❌', '卖出触发%', `${num(ns)}%`
                 ].reduce((h, v, i, a) => i % 2 === 0 ? h +
                     `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
-                document.getElementById('taxSetters').innerHTML = ['tx1', 'tx2', 'tx3', 'tx4', 'tx5', 'tx6'].map(id =>
-                    `<input id="${id}" placeholder="${['买入基金','买入LP','买入销毁','卖出基金','卖出LP','卖出销毁'][id.charCodeAt(2)-49]}">`
-                ).join('') + '<button id="setTaxBtn" class="success">更新</button>';
+                document.getElementById('taxSetters').innerHTML = ['买入基金', '买入LP', '买入销毁', '卖出基金', '卖出LP', '卖出销毁'].map((n,
+                    i) => `<input id="tx${i+1}" placeholder="${n}">`).join('') +
+                    '<button id="setTaxBtn" class="success">更新</button>';
                 document.getElementById('setTaxBtn').onclick = async () => {
                     if (!signer) return alert('连接钱包');
-                    const v = ['tx1', 'tx2', 'tx3', 'tx4', 'tx5', 'tx6'].map(id => parseInt(document.getElementById(id)
-                        .value));
+                    const v = [1, 2, 3, 4, 5, 6].map(i => parseInt(document.getElementById('tx' + i).value));
                     if (v.some(isNaN)) return alert('输入整数基点');
                     if (v[0] + v[1] + v[2] >= 2500 || v[3] + v[4] + v[5] >= 2500) return alert('总税<2500');
                     try { await (await contract.connect(signer).completeCustoms(v)).wait();
@@ -481,11 +483,12 @@
                     .lastDayReset(), contract.triggerState(), contract.lockedBuyAmount(), contract.lockedSellAmount(),
                     contract.buyRecordFrozen(), contract.sellRecordFrozen()
                 ]);
+                const maxUint = ethers.constants.MaxUint256;
                 const stN = ['无', '待卖出', '待买入'];
                 document.getElementById('stabilizeData').innerHTML = ['累计买入', fmt(ba), '累计卖出', fmt(sa), '买入阈值', bt.eq(
-                    ethers.constants.MaxUint256) ? '未设置' : fmt(bt), '卖出阈值', st.eq(ethers.constants.MaxUint256) ? '未设置' :
-                    fmt(st), '执行%', `${num(p)}bp`, '自动', en ? '✅' : '❌', '状态', stN[num(ts)] || '?', '锁定买入', fmt(lb),
-                    '锁定卖出', fmt(ls), '买入冻结', bf ? '🔴' : '🟢', '卖出冻结', sf ? '🔴' : '🟢'
+                    maxUint) ? '未设置' : fmt(bt), '卖出阈值', st.eq(maxUint) ? '未设置' : fmt(st), '执行%', `${num(p)}bp`,
+                    '自动', en ? '✅' : '❌', '状态', stN[num(ts)] || '?', '锁定买入', fmt(lb), '锁定卖出', fmt(ls), '买入冻结',
+                    bf ? '🔴' : '🟢', '卖出冻结', sf ? '🔴' : '🟢'
                 ].reduce((h, v, i, a) => i % 2 === 0 ? h +
                     `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
                 document.getElementById('dailyTriggerData').innerHTML = ['每日上限', num(md), '今日已触发', num(dc), '上次重置', date(
@@ -500,9 +503,10 @@
                     if (!signer) return alert('连接钱包');
                     const buy = toWei(document.getElementById('sbt').value || '0'),
                         sell = toWei(document.getElementById('sst').value || '0'),
-                        p = parseInt(document.getElementById('sp').value) || 0,
-                        md = parseInt(document.getElementById('smd').value) || 5;
-                    try { await (await contract.connect(signer).setAutoTriggerParams(buy, sell, p, md)).wait();
+                        perc = parseInt(document.getElementById('sp').value) || 0,
+                        maxD = parseInt(document.getElementById('smd').value) || 5;
+                    try { await (await contract.connect(signer).setAutoTriggerParams(buy, sell, perc, maxD))
+                    .wait();
                         loadPanel('stabilize'); } catch (e) { alert(e.message); }
                 };
                 document.getElementById('toggleAutoBtn').onclick = async () => { const cur = await contract
@@ -529,7 +533,6 @@
             }
             async function scanEvents(quick) {
                 const bar = document.getElementById('progressBar'),
-                    txt = document.getElementById('scanProgress'),
                     out = document.getElementById('scanResult');
                 out.innerHTML = '';
                 bar.style.width = '0%';
@@ -595,8 +598,20 @@
                 };
                 document.getElementById('lpExcludeSetters').innerHTML =
                     '<input id="lpex" placeholder="LP地址"><button id="exclBtn" class="danger">排除</button><button id="restBtn" class="success">恢复</button>';
-                document.getElementById('exclBtn').onclick = () => exclLP(true);
-                document.getElementById('restBtn').onclick = () => exclLP(false);
+                document.getElementById('exclBtn').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const a = document.getElementById('lpex').value.trim();
+                    if (!ethers.utils.isAddress(a)) return alert('地址无效');
+                    await (await contract.connect(signer).setExcludeLPProvider(a, true)).wait();
+                    loadPanel('lp');
+                };
+                document.getElementById('restBtn').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const a = document.getElementById('lpex').value.trim();
+                    if (!ethers.utils.isAddress(a)) return alert('地址无效');
+                    await (await contract.connect(signer).setExcludeLPProvider(a, false)).wait();
+                    loadPanel('lp');
+                };
                 document.getElementById('scanLpProviders').onclick = async () => {
                     const div = document.getElementById('lpProvidersList');
                     div.textContent = '扫描中...';
@@ -606,13 +621,6 @@
                             p.push(a); } catch { break; } }
                     div.innerHTML = p.map(a => a).join('<br>');
                 };
-            }
-            async function exclLP(v) {
-                if (!signer) return alert('连接钱包');
-                const a = document.getElementById('lpex').value.trim();
-                if (!ethers.utils.isAddress(a)) return alert('地址无效');
-                await (await contract.connect(signer).setExcludeLPProvider(a, v)).wait();
-                loadPanel('lp');
             }
 
             async function loadInvite() {
@@ -657,32 +665,30 @@
                     contract.airdropNumbs(), contract._minTransAmount(), contract.limitAddLiquidity(), contract
                     .enableChangeTax(), contract.numTokensSellRate()
                 ]);
-                document.getElementById('advancedData').innerHTML = ['燃烧比例', `${num(br)}bp`, '燃烧间隔', `${num(bf)}秒`, '上次燃烧',
-                    date(lb), '反MEV', as ? '✅' : '❌', '开盘控制', ot ? '✅' : '❌', '杀区块', ek ? `✅${num(kb)}` : '❌', '启动块',
-                    num(st) || '未', '空投', ae ? `✅${num(an)}` : '❌', '最小转账', fmt(mt), '限加流动', la ? '✅' : '❌', '税率可改',
-                    ct ? '✅' : '❌', '卖出触发%', `${num(ns)}%`
+                document.getElementById('advancedData').innerHTML = ['燃烧比例', `${num(br)}bp`, '燃烧间隔', `${num(bf)}秒`,
+                    '上次燃烧', date(lb), '反MEV', as ? '✅' : '❌', '开盘控制', ot ? '✅' : '❌', '杀区块', ek ? `✅${num(kb)}` : '❌',
+                    '启动块', num(st) || '未', '空投', ae ? `✅${num(an)}` : '❌', '最小转账', fmt(mt), '限加流动', la ? '✅' : '❌',
+                    '税率可改', ct ? '✅' : '❌', '卖出触发%', `${num(ns)}%`
                 ].reduce((h, v, i, a) => i % 2 === 0 ? h +
                     `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
                 document.getElementById('advancedSetters').innerHTML =
-                    '<input id="abr" placeholder="燃烧比例(bp)"><input id="abf" placeholder="燃烧间隔(小时)"><input id="akb" placeholder="杀区块数"><input id="aad" placeholder="空投数"><input id="amt" placeholder="最小转账(代币)"><input id="ans" placeholder="卖出触发%"><button id="setAdvBtn" class="success">更新</button>';
+                    '<input id="abr" placeholder="燃烧比例(bp)"><input id="abf" placeholder="燃烧间隔(小时)"><input id="akb" placeholder="杀区块数"><input id="aad" placeholder="空投数(≤5)"><input id="amt" placeholder="最小转账(代币)"><input id="ans" placeholder="卖出触发%"><button id="setAdvBtn" class="success">更新</button>';
                 document.getElementById('setAdvBtn').onclick = async () => {
                     if (!signer) return alert('连接钱包');
                     const c = contract.connect(signer);
-                    const vals = {
-                        br: document.getElementById('abr').value,
-                        bf: document.getElementById('abf').value,
-                        kb: document.getElementById('akb').value,
-                        ad: document.getElementById('aad').value,
-                        mt: document.getElementById('amt').value,
-                        ns: document.getElementById('ans').value
-                    };
+                    const br = document.getElementById('abr').value,
+                        bf = document.getElementById('abf').value,
+                        kb = document.getElementById('akb').value,
+                        ad = document.getElementById('aad').value,
+                        mt = document.getElementById('amt').value,
+                        ns = document.getElementById('ans').value;
                     try {
-                        if (vals.br) await (await c.setlpBurnRate(parseInt(vals.br))).wait();
-                        if (vals.bf) await (await c.setlpBurnFrequency(parseInt(vals.bf))).wait();
-                        if (vals.kb) await (await c.setkb(parseInt(vals.kb))).wait();
-                        if (vals.ad) await (await c.setAirdropNumbs(parseInt(vals.ad))).wait();
-                        if (vals.mt) await (await c.setMinTransAmount(toWei(vals.mt))).wait();
-                        if (vals.ns) await (await c.setNumTokensSellRate(parseInt(vals.ns))).wait();
+                        if (br) await (await c.setlpBurnRate(parseInt(br))).wait();
+                        if (bf) await (await c.setlpBurnFrequency(parseInt(bf))).wait();
+                        if (kb) await (await c.setkb(parseInt(kb))).wait();
+                        if (ad) await (await c.setAirdropNumbs(parseInt(ad))).wait();
+                        if (mt) await (await c.setMinTransAmount(toWei(mt))).wait();
+                        if (ns) await (await c.setNumTokensSellRate(parseInt(ns))).wait();
                         loadPanel('advanced');
                     } catch (e) { alert(e.message); }
                 };
@@ -801,7 +807,7 @@
                     .value.trim(); if (!ethers.utils.isAddress(a)) return alert('无效地址');
                 await (await contract.connect(signer)[m]([a], v)).wait(); }
 
-            const saved = localStorage.getItem('crc8');
+            const saved = localStorage.getItem('crc9');
             if (saved) document.getElementById('contractAddress').value = saved;
         })();
     </script>
