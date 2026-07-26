@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRC 稳定控制面板 v9.0 · PandaTokenV4 完全对齐</title>
+    <title>CRC 稳定控制面板 v10.0 · PandaTokenV4 终极修复</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js">
     </script>
     <style>
@@ -149,11 +149,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🛡️ CRC 控制面板 v9.0 · 完全对齐</h1>
+            <h1>🛡️ CRC 控制面板 v10.0 · 终极修复</h1>
             <div><button id="connectWallet" class="success">🔌 连接钱包</button> <span id="walletAddress"></span></div>
         </div>
         <div class="card">
-            <div class="desc">输入 <b>PandaTokenV4</b> 合约地址。所有按钮严格对应合约函数。代币数量输入普通数字，自动转换。</div>
+            <div class="desc">输入 <b>PandaTokenV4</b> 合约地址。所有按钮1:1对应合约函数。代币输入普通数字自动转换。</div>
             <div class="input-group">
                 <input id="contractAddress" placeholder="合约地址 (0x...)" style="flex:1;">
                 <button id="loadContract" class="success">📦 加载</button>
@@ -175,7 +175,7 @@
         <!-- 面板们 -->
         <div id="panel-token" class="card"><h2>📊 代币数据</h2><div class="data-grid" id="tokenData"></div></div>
         <div id="panel-tax" class="card hidden"><h2>🧾 税率</h2><div class="data-grid" id="taxData"></div>
-            <h3>修改交易税率 (6项基点) <span style="font-size:0.8rem;">— completeCustoms(uint256[])</span></h3><div class="input-group" id="taxSetters"></div>
+            <h3>修改交易税率 (6项基点) — completeCustoms</h3><div class="input-group" id="taxSetters"></div>
             <h3>修改流动性税率</h3><div class="input-group" id="liqTaxSetters"></div></div>
         <div id="panel-stabilize" class="card hidden"><h2>⚖️ 稳定机制</h2><div class="data-grid" id="stabilizeData"></div>
             <h3>每日触发</h3><div class="data-grid" id="dailyTriggerData"></div>
@@ -184,16 +184,16 @@
             <h3>增发扫描 <button id="quickScanBtn">⚡快速</button> <button id="fullScanBtn">🔍完整</button></h3>
             <div class="progress"><div id="progressBar" style="height:8px;background:var(--accent);width:0%;"></div></div>
             <div id="scanResult"></div>
-            <h3>设置参数 <span style="font-size:0.8rem;">(阈值:代币个数, 百分比:基点, 上限:整数)</span> — setAutoTriggerParams</h3>
+            <h3>设置参数 — setAutoTriggerParams(买入阈值,卖出阈值,执行%,每日上限)</h3>
             <div class="input-group" id="stabilizeSetters"></div>
             <div class="input-group"><button id="toggleAutoBtn">🔄 切换自动</button><button id="forceResetStateBtn" class="danger">🔴 重置状态</button></div>
         </div>
         <div id="panel-lp" class="card hidden"><h2>💧 LP挖矿</h2><div class="data-grid" id="lpData"></div>
-            <h3>设置 (奖励基数:代币, 最低LP:LP个数(自动18位), 上级持仓:代币)</h3><div class="input-group" id="lpSetters"></div>
-            <h3>排除/恢复 LP 提供者</h3><div class="input-group" id="lpExcludeSetters"></div>
+            <h3>设置 (奖励基数:代币, 最低LP:LP个数, 上级持仓:代币)</h3><div class="input-group" id="lpSetters"></div>
+            <h3>排除/恢复 LP提供者</h3><div class="input-group" id="lpExcludeSetters"></div>
             <h3>LP列表 <button id="scanLpProviders">扫描</button></h3><div id="lpProvidersList"></div></div>
         <div id="panel-invite" class="card hidden"><h2>👥 邀请</h2><div class="data-grid" id="inviteData"></div>
-            <h3>设置 (比例和=100%) — changeInviteRate</h3><div class="input-group" id="inviteSetters"></div>
+            <h3>设置 — changeInviteRate([代数,1代%,2代%,3代%,超出%])</h3><div class="input-group" id="inviteSetters"></div>
             <h3>查询</h3><div class="input-group" id="inviteQuery"></div><div id="inviteQueryResult" class="event-log"></div></div>
         <div id="panel-advanced" class="card hidden"><h2>⚙️ 高级</h2><div class="data-grid" id="advancedData"></div>
             <h3>设置</h3><div class="input-group" id="advancedSetters"></div>
@@ -218,7 +218,6 @@
                 currDec = 18,
                 lpDist = "";
 
-            // 完整 ABI（与合约逐字段对齐）
             const abi = [
                 "function name() view returns (string)",
                 "function symbol() view returns (string)",
@@ -359,6 +358,9 @@
 
             function date(ts) { return ts && ts != 0 ? new Date(Number(ts) * 1000).toLocaleString() : '未设置'; }
 
+            async function isOwner() { try { const o = await contract.owner(); return signer && (await signer.getAddress())
+                    .toLowerCase() === o.toLowerCase(); } catch { return false; } }
+
             // 标签切换
             document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function() {
                 document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
@@ -381,7 +383,7 @@
                 const a = document.getElementById('contractAddress').value.trim();
                 if (!ethers.utils.isAddress(a)) return alert('无效地址');
                 currentAddr = a;
-                localStorage.setItem('crc9', a);
+                localStorage.setItem('crc10', a);
                 document.getElementById('contractStatus').textContent = '加载中...';
                 try {
                     const code = await retry(() => provider.getCode(a));
@@ -399,9 +401,9 @@
                     document.querySelector('.tab[data-tab="token"]').click();
                 } catch (e) { document.getElementById('contractStatus').textContent = '❌ ' + e.message; }
             };
-            document.getElementById('saveAddress').onclick = () => localStorage.setItem('crc9', document.getElementById(
+            document.getElementById('saveAddress').onclick = () => localStorage.setItem('crc10', document.getElementById(
                 'contractAddress').value.trim());
-            document.getElementById('autoLoadBtn').onclick = () => { const s = localStorage.getItem('crc9'); if (s) { document
+            document.getElementById('autoLoadBtn').onclick = () => { const s = localStorage.getItem('crc10'); if (s) { document
                     .getElementById('contractAddress').value = s;
                     document.getElementById('loadContract').click(); } else alert('无保存'); };
 
@@ -443,29 +445,29 @@
                     .sell_burnFee(), contract.addLiquidityFee(), contract.removeLiquidityFee(), contract.enableChangeTax(),
                     contract.numTokensSellRate()
                 ]);
-                const bt = num(bf) + num(bl) + num(bb),
-                    st = num(sf) + num(sl) + num(sb);
                 document.getElementById('taxData').innerHTML = ['买入基金', `${num(bf)}bp`, '买入LP', `${num(bl)}bp`, '买入销毁',
                     `${num(bb)}bp`, '卖出基金', `${num(sf)}bp`, '卖出LP', `${num(sl)}bp`, '卖出销毁', `${num(sb)}bp`, '添加流动性',
-                    `${num(af)}bp`, '移除流动性', `${num(rf)}bp`, '买入总税', `${bt}`, '卖出总税', `${st}`, '税率可改', ct ?
-                    '✅' : '❌', '卖出触发%', `${num(ns)}%`
+                    `${num(af)}bp`, '移除流动性', `${num(rf)}bp`, '买入总税', `${num(bf)+num(bl)+num(bb)}`, '卖出总税',
+                    `${num(sf)+num(sl)+num(sb)}`, '税率可改', ct ? '✅' : '❌', '卖出触发%', `${num(ns)}%`
                 ].reduce((h, v, i, a) => i % 2 === 0 ? h +
                     `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
                 document.getElementById('taxSetters').innerHTML = ['买入基金', '买入LP', '买入销毁', '卖出基金', '卖出LP', '卖出销毁'].map((n,
                     i) => `<input id="tx${i+1}" placeholder="${n}">`).join('') +
                     '<button id="setTaxBtn" class="success">更新</button>';
                 document.getElementById('setTaxBtn').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能修改税率');
                     const v = [1, 2, 3, 4, 5, 6].map(i => parseInt(document.getElementById('tx' + i).value));
-                    if (v.some(isNaN)) return alert('输入整数基点');
-                    if (v[0] + v[1] + v[2] >= 2500 || v[3] + v[4] + v[5] >= 2500) return alert('总税<2500');
+                    if (v.some(isNaN)) return alert('请输入整数基点');
+                    if (v[0] + v[1] + v[2] >= 2500 || v[3] + v[4] + v[5] >= 2500) return alert('总税需<2500');
                     try { await (await contract.connect(signer).completeCustoms(v)).wait();
                         loadPanel('tax'); } catch (e) { alert(e.message); }
                 };
                 document.getElementById('liqTaxSetters').innerHTML =
                     '<input id="liqAdd" placeholder="添加税"><input id="liqRem" placeholder="移除税"><button id="setLiqBtn" class="success">更新</button>';
                 document.getElementById('setLiqBtn').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能修改');
                     const a = parseInt(document.getElementById('liqAdd').value),
                         r = parseInt(document.getElementById('liqRem').value);
                     try {
@@ -500,21 +502,30 @@
                 document.getElementById('stabilizeSetters').innerHTML =
                     '<input id="sbt" placeholder="买入阈值(代币)"><input id="sst" placeholder="卖出阈值(代币)"><input id="sp" placeholder="执行%(基点)"><input id="smd" placeholder="每日上限"><button id="setStbBtn" class="success">更新</button>';
                 document.getElementById('setStbBtn').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
-                    const buy = toWei(document.getElementById('sbt').value || '0'),
-                        sell = toWei(document.getElementById('sst').value || '0'),
-                        perc = parseInt(document.getElementById('sp').value) || 0,
-                        maxD = parseInt(document.getElementById('smd').value) || 5;
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能修改稳定参数');
+                    const buy = toWei(document.getElementById('sbt').value || '0');
+                    const sell = toWei(document.getElementById('sst').value || '0');
+                    const perc = parseInt(document.getElementById('sp').value) || 0;
+                    const maxD = Math.min(255, parseInt(document.getElementById('smd').value) || 5);
                     try { await (await contract.connect(signer).setAutoTriggerParams(buy, sell, perc, maxD))
                     .wait();
                         loadPanel('stabilize'); } catch (e) { alert(e.message); }
                 };
-                document.getElementById('toggleAutoBtn').onclick = async () => { const cur = await contract
-                        .enableAutoTrigger(); await (await contract.connect(signer).setEnableAutoTrigger(!cur)).wait();
-                    loadPanel('stabilize'); };
-                document.getElementById('forceResetStateBtn').onclick = async () => { if (!confirm('重置？')) return;
+                document.getElementById('toggleAutoBtn').onclick = async () => {
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能切换');
+                    const cur = await contract.enableAutoTrigger();
+                    await (await contract.connect(signer).setEnableAutoTrigger(!cur)).wait();
+                    loadPanel('stabilize');
+                };
+                document.getElementById('forceResetStateBtn').onclick = async () => {
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能重置');
+                    if (!confirm('重置稳定状态？')) return;
                     await (await contract.connect(signer).forceResetTriggerState()).wait();
-                    loadPanel('stabilize'); };
+                    loadPanel('stabilize');
+                };
                 document.getElementById('verifyBalances').onclick = async () => {
                     const div = document.getElementById('balanceVerification');
                     div.textContent = '查询中...';
@@ -584,7 +595,8 @@
                 document.getElementById('lpSetters').innerHTML =
                     '<input id="lc" placeholder="奖励基数"><input id="lml" placeholder="最低LP"><input id="lmi" placeholder="上级持仓"><button id="setLPBtn" class="success">更新</button>';
                 document.getElementById('setLPBtn').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能修改');
                     const c = contract.connect(signer);
                     const v1 = document.getElementById('lc').value,
                         v2 = document.getElementById('lml').value,
@@ -599,14 +611,16 @@
                 document.getElementById('lpExcludeSetters').innerHTML =
                     '<input id="lpex" placeholder="LP地址"><button id="exclBtn" class="danger">排除</button><button id="restBtn" class="success">恢复</button>';
                 document.getElementById('exclBtn').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能操作');
                     const a = document.getElementById('lpex').value.trim();
                     if (!ethers.utils.isAddress(a)) return alert('地址无效');
                     await (await contract.connect(signer).setExcludeLPProvider(a, true)).wait();
                     loadPanel('lp');
                 };
                 document.getElementById('restBtn').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能操作');
                     const a = document.getElementById('lpex').value.trim();
                     if (!ethers.utils.isAddress(a)) return alert('地址无效');
                     await (await contract.connect(signer).setExcludeLPProvider(a, false)).wait();
@@ -635,12 +649,13 @@
                 document.getElementById('inviteSetters').innerHTML =
                     '<input id="ig" placeholder="代数"><input id="if" placeholder="1代%"><input id="is" placeholder="2代%"><input id="it" placeholder="3代%"><input id="il" placeholder="超出%"><button id="setInvBtn" class="success">更新</button>';
                 document.getElementById('setInvBtn').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能修改邀请参数');
                     const v = ['ig', 'if', 'is', 'it', 'il'].map(id => parseInt(document.getElementById(id).value));
-                    if (v.some(isNaN)) return alert('整数');
-                    if (v[1] + v[2] + v[3] + v[4] * (v[0] - 3) !== 100) return alert('和不等于100');
-                    await (await contract.connect(signer).changeInviteRate(v)).wait();
-                    loadPanel('invite');
+                    if (v.some(isNaN)) return alert('请输入整数');
+                    if (v[1] + v[2] + v[3] + v[4] * (v[0] - 3) !== 100) return alert('比例和不等于100');
+                    try { await (await contract.connect(signer).changeInviteRate(v)).wait();
+                        loadPanel('invite'); } catch (e) { alert(e.message); }
                 };
                 document.getElementById('inviteQuery').innerHTML =
                     '<input id="iqaddr" placeholder="地址"><button id="qinv">邀请者</button><button id="qbind">绑定数</button><button id="qlist">绑定列表</button>';
@@ -674,7 +689,8 @@
                 document.getElementById('advancedSetters').innerHTML =
                     '<input id="abr" placeholder="燃烧比例(bp)"><input id="abf" placeholder="燃烧间隔(小时)"><input id="akb" placeholder="杀区块数"><input id="aad" placeholder="空投数(≤5)"><input id="amt" placeholder="最小转账(代币)"><input id="ans" placeholder="卖出触发%"><button id="setAdvBtn" class="success">更新</button>';
                 document.getElementById('setAdvBtn').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能修改');
                     const c = contract.connect(signer);
                     const br = document.getElementById('abr').value,
                         bf = document.getElementById('abf').value,
@@ -686,7 +702,7 @@
                         if (br) await (await c.setlpBurnRate(parseInt(br))).wait();
                         if (bf) await (await c.setlpBurnFrequency(parseInt(bf))).wait();
                         if (kb) await (await c.setkb(parseInt(kb))).wait();
-                        if (ad) await (await c.setAirdropNumbs(parseInt(ad))).wait();
+                        if (ad) await (await c.setAirdropNumbs(Math.min(5, parseInt(ad)))).wait();
                         if (mt) await (await c.setMinTransAmount(toWei(mt))).wait();
                         if (ns) await (await c.setNumTokensSellRate(parseInt(ns))).wait();
                         loadPanel('advanced');
@@ -703,14 +719,21 @@
                 document.getElementById('asOff').onclick = () => toggleBool('setAntiSYNCEnable', false);
                 document.getElementById('laOn').onclick = () => toggleBool('setLimitAddLiquidity', true);
                 document.getElementById('laOff').onclick = () => toggleBool('setLimitAddLiquidity', false);
-                document.getElementById('lockTax').onclick = async () => { if (!signer) return alert('连接钱包'); if (!confirm(
-                        '永久锁税？')) return;
+                document.getElementById('lockTax').onclick = async () => {
+                    if (!signer) return alert('请连接钱包');
+                    if (!(await isOwner())) return alert('只有Owner才能锁税');
+                    if (!confirm('永久锁税？')) return;
                     await (await contract.connect(signer).disableChangeTax()).wait();
-                    loadPanel('advanced'); };
+                    loadPanel('advanced');
+                };
             }
-            async function toggleBool(m, v) { if (!signer) return alert('连接钱包');
-                await (await contract.connect(signer)[m](v)).wait();
-                loadPanel('advanced'); }
+            async function toggleBool(method, value) {
+                if (!signer) return alert('请连接钱包');
+                if (!(await isOwner())) return alert('只有Owner才能操作');
+                const tx = await contract.connect(signer)[method](value);
+                await tx.wait();
+                loadPanel('advanced');
+            }
 
             async function loadAdmin() {
                 const [ps, ep, em, ew, mw, f, o] = await Promise.all([contract.pause(), contract.enablePause(), contract
@@ -731,10 +754,12 @@
                 document.getElementById('pauseBtn').onclick = () => adminCall('PauseTransaction');
                 document.getElementById('resumeBtn').onclick = () => adminCall('recoverTransaction');
                 document.getElementById('disWL').onclick = () => adminCall('disableWalletLimit');
-                document.getElementById('renounce').onclick = async () => { if (!signer) return alert('连接钱包'); if (!confirm(
-                        '放弃？')) return;
+                document.getElementById('renounce').onclick = async () => {
+                    if (!signer) return alert('请连接钱包');
+                    if (!confirm('放弃所有权？')) return;
                     await (await contract.connect(signer).renounceOwnership()).wait();
-                    loadPanel('admin'); };
+                    loadPanel('admin');
+                };
                 document.getElementById('adminLists').innerHTML = `
                 <input id="wlAddr" placeholder="地址">
                 <button id="addW">加白</button><button id="remW">移白</button>
@@ -749,17 +774,17 @@
                 document.getElementById('adminExtra').innerHTML = `
                 <input id="nLimit" placeholder="新限额(代币)"><button id="setLimit">设限额</button>
                 <input id="mAmt" placeholder="增发量"><input id="mAddr" placeholder="接收地址"><button id="mint" class="success">增发</button>
-                <input id="nFund" placeholder="新基金"><button id="setFund">设基金</button>
+                <input id="nFund" placeholder="新基金(EOA)"><button id="setFund">设基金</button>
                 <input id="cToken" placeholder="代币(0=BNB)"><input id="cAmt" placeholder="数量"><button id="claim" class="danger">提取</button>
                 <input id="nOwner" placeholder="新Owner"><button id="transOwner">转移所有权</button>`;
                 document.getElementById('setLimit').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
                     await (await contract.connect(signer).changeWalletLimit(toWei(document.getElementById('nLimit')
                         .value))).wait();
                     loadPanel('admin');
                 };
                 document.getElementById('mint').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
                     const a = document.getElementById('mAddr').value.trim(),
                         amt = toWei(document.getElementById('mAmt').value);
                     if (!a) return;
@@ -767,12 +792,13 @@
                     alert('已增发');
                 };
                 document.getElementById('setFund').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
                     const a = document.getElementById('nFund').value.trim(); if (!a) return;
                     await (await contract.connect(signer).setFundAddress(a)).wait();
+                    alert('基金已更新');
                 };
                 document.getElementById('claim').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
                     const t = document.getElementById('cToken').value.trim(),
                         amt = document.getElementById('cAmt').value;
                     try {
@@ -780,7 +806,7 @@
                             .connect(signer).setClaims('0x0000000000000000000000000000000000000000', ethers.utils
                             .parseEther(amt || '0'))).wait();
                         else {
-                            if (!ethers.utils.isAddress(t)) return alert('地址无效');
+                            if (!ethers.utils.isAddress(t)) return alert('代币地址无效');
                             let d = 18;
                             try { d = num(await new ethers.Contract(t, ['function decimals() view returns(uint256)'],
                                     provider).decimals()); } catch {}
@@ -791,7 +817,7 @@
                     } catch (e) { alert(e.message); }
                 };
                 document.getElementById('transOwner').onclick = async () => {
-                    if (!signer) return alert('连接钱包');
+                    if (!signer) return alert('请连接钱包');
                     const a = document.getElementById('nOwner').value.trim();
                     if (!ethers.utils.isAddress(a)) return alert('无效地址');
                     if (!confirm('转移所有权？')) return;
@@ -799,15 +825,24 @@
                     loadPanel('admin');
                 };
             }
-            async function adminCall(m) { if (!signer) return alert('连接钱包');
-                await (await contract.connect(signer)[m]()).wait();
-                loadPanel('admin'); }
+            async function adminCall(method) {
+                if (!signer) return alert('请连接钱包');
+                if (!(await isOwner())) return alert('只有Owner才能执行');
+                const tx = await contract.connect(signer)[method]();
+                await tx.wait();
+                loadPanel('admin');
+            }
+            async function listCall(method, value) {
+                if (!signer) return alert('请连接钱包');
+                if (!(await isOwner())) return alert('只有Owner才能操作');
+                const a = document.getElementById('wlAddr').value.trim();
+                if (!ethers.utils.isAddress(a)) return alert('无效地址');
+                const tx = await contract.connect(signer)[method]([a], value);
+                await tx.wait();
+                alert('操作成功');
+            }
 
-            async function listCall(m, v) { if (!signer) return alert('连接钱包'); const a = document.getElementById('wlAddr')
-                    .value.trim(); if (!ethers.utils.isAddress(a)) return alert('无效地址');
-                await (await contract.connect(signer)[m]([a], v)).wait(); }
-
-            const saved = localStorage.getItem('crc9');
+            const saved = localStorage.getItem('crc10');
             if (saved) document.getElementById('contractAddress').value = saved;
         })();
     </script>
