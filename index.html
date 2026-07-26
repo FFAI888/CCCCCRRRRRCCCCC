@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRC 稳定控制面板 v7.4 · PandaTokenV4 最终校验</title>
+    <title>CRC 稳定控制面板 v8.0 · PandaTokenV4 纯净重写</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js">
     </script>
     <style>
@@ -16,8 +16,6 @@
             --accent: #3b82f6;
             --accent2: #10b981;
             --danger: #ef4444;
-            --warning: #f59e0b;
-            --purple: #8b5cf6;
         }
         * {
             box-sizing: border-box;
@@ -30,10 +28,9 @@
             color: var(--text);
             padding: 20px;
             min-height: 100vh;
-            line-height: 1.5;
         }
         .container {
-            max-width: 1800px;
+            max-width: 1700px;
             margin: 0 auto;
         }
         .header {
@@ -44,21 +41,6 @@
             gap: 15px;
             margin-bottom: 20px;
         }
-        .header h1 {
-            font-size: 1.9rem;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .version {
-            background: var(--accent);
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            font-weight: 700;
-        }
         .card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -66,27 +48,13 @@
             padding: 22px 24px;
             margin-bottom: 18px;
         }
-        .card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 8px;
+        h2 {
             color: var(--accent);
+            margin-bottom: 12px;
         }
-        .card h3 {
-            font-size: 1rem;
+        h3 {
+            color: var(--text2);
             margin: 14px 0 8px;
-            color: var(--text2);
-            font-weight: 500;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 6px;
-        }
-        .desc {
-            font-size: 0.78rem;
-            color: var(--text2);
-            margin-bottom: 14px;
-            padding: 6px 10px;
-            background: #0f172a;
-            border-radius: 8px;
-            border-left: 3px solid var(--accent);
         }
         .input-group {
             display: flex;
@@ -96,7 +64,6 @@
             align-items: center;
         }
         input,
-        select,
         button {
             padding: 10px 15px;
             border-radius: 10px;
@@ -104,58 +71,42 @@
             background: #1e293b;
             color: var(--text);
             font-size: 0.9rem;
-            font-family: inherit;
         }
         button {
             cursor: pointer;
-            background: var(--accent);
             border: none;
             font-weight: 600;
-            white-space: nowrap;
+            background: var(--accent);
             transition: filter 0.2s;
         }
         button:hover {
             filter: brightness(1.2);
         }
-        button.danger {
-            background: var(--danger);
-        }
         button.success {
             background: var(--accent2);
         }
-        button.wallet-btn {
-            background: var(--accent2);
-        }
-        button.refresh-btn {
-            background: #475569;
-        }
-        button.purple-btn {
-            background: var(--purple);
+        button.danger {
+            background: var(--danger);
         }
         .data-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 10px;
         }
         .data-item {
             background: #0f172a;
-            padding: 11px 15px;
-            border-radius: 11px;
+            padding: 10px 15px;
+            border-radius: 10px;
             border: 1px solid #1e293b;
         }
         .data-item label {
-            font-size: 0.73rem;
+            font-size: 0.7rem;
             color: var(--text2);
-            margin-bottom: 4px;
-            display: block;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
         }
         .data-item span {
-            font-size: 1.02rem;
+            font-size: 1rem;
             font-weight: 600;
-            word-break: break-all;
-            color: #f1f5f9;
         }
         .tabs {
             display: flex;
@@ -165,90 +116,52 @@
         }
         .tab {
             background: #1e293b;
-            border: 1px solid var(--border);
-            color: var(--text2);
             padding: 9px 16px;
             border-radius: 10px;
             cursor: pointer;
             font-weight: 500;
-            font-size: 0.85rem;
-            transition: all 0.2s;
         }
         .tab.active {
             background: var(--accent);
             color: #fff;
-            border-color: var(--accent);
-            box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
         }
         .hidden {
             display: none !important;
         }
-        hr {
-            border-color: var(--border);
-            margin: 16px 0;
-        }
         .event-log {
             background: #0f172a;
             border-radius: 10px;
-            padding: 12px 15px;
+            padding: 12px;
             margin-top: 10px;
             font-size: 0.85rem;
-            line-height: 1.6;
         }
-        .progress {
-            height: 8px;
-            background: #1e293b;
-            border-radius: 8px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-        .progress div {
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.3s;
-        }
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .data-grid {
-                grid-template-columns: 1fr;
-            }
-            .input-group {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .tab {
-                font-size: 0.78rem;
-                padding: 7px 12px;
-            }
+        .desc {
+            font-size: 0.8rem;
+            color: var(--text2);
+            margin-bottom: 14px;
+            padding: 6px 10px;
+            background: #0f172a;
+            border-left: 3px solid var(--accent);
+            border-radius: 6px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🛡️ CRC 稳定控制面板</h1>
-            <span class="version">v7.4 · 最终校验</span>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <button id="connectWallet" class="wallet-btn">🔌 连接钱包</button>
-                <span id="walletAddress" style="font-size:0.88rem; color: var(--text2);"></span>
-            </div>
+            <h1>🛡️ CRC 控制面板 v8.0 · 纯净映射</h1>
+            <div><button id="connectWallet" class="success">🔌 连接钱包</button> <span id="walletAddress"></span></div>
         </div>
-
         <div class="card">
-            <div class="desc">📌 输入 <b>PandaTokenV4</b> 合约地址。所有按钮均严格对应合约函数，输入<b>代币数量时使用普通数字</b>（如 1000），脚本自动转换为最小单位。</div>
+            <div class="desc">输入合约地址，所有按钮1:1对应合约函数。代币数量输入<b>普通数字</b>（如1000），自动转为最小单位。LP个数自动转为18位精度。</div>
             <div class="input-group">
-                <input type="text" id="contractAddress" placeholder="合约地址 (0x...)" style="flex:1;">
-                <button id="loadContract" class="success">📦 加载合约</button>
-                <button id="saveAddress" class="refresh-btn">💾 保存</button>
-                <button id="autoLoadBtn" class="purple-btn">⚡ 加载上次</button>
+                <input id="contractAddress" placeholder="0x..." style="flex:1;">
+                <button id="loadContract" class="success">📦 加载</button>
+                <button id="saveAddress">💾 保存</button>
+                <button id="autoLoadBtn">⚡ 加载上次</button>
             </div>
-            <div id="contractStatus" style="margin-top: 8px; font-size:0.9rem;"></div>
+            <div id="contractStatus"></div>
         </div>
-
         <div class="tabs" id="tabGroup">
             <div class="tab active" data-tab="token">📊 代币</div>
             <div class="tab" data-tab="tax">🧾 税率</div>
@@ -259,111 +172,50 @@
             <div class="tab" data-tab="admin">🛡️ 管理</div>
         </div>
 
-        <!-- 代币面板 -->
-        <div id="panel-token" class="card">
-            <h2>📊 代币数据</h2>
-            <div class="data-grid" id="tokenData"></div>
-        </div>
-
-        <!-- 税率面板 -->
-        <div id="panel-tax" class="card hidden">
-            <h2>🧾 税率配置</h2>
-            <div class="data-grid" id="taxData"></div>
-            <h3>✏️ 修改交易税率 (6项) <span style="font-size:0.8rem;color:var(--text2);">— 基点，总税需&lt;2500</span></h3>
-            <div class="input-group" id="taxSetters"></div>
-            <h3>✏️ 修改流动性税率</h3>
-            <div class="input-group" id="liqTaxSetters"></div>
-        </div>
-
-        <!-- 稳定面板 -->
-        <div id="panel-stabilize" class="card hidden">
-            <h2>⚖️ 稳定机制</h2>
-            <div class="data-grid" id="stabilizeData"></div>
-            <h3>📊 每日触发</h3>
-            <div class="data-grid" id="dailyTriggerData"></div>
-            <h3>🔍 稳定地址</h3>
-            <div class="data-grid" id="stabilizeAddresses"></div>
-            <hr>
-            <h3>💰 余额查询 <button id="verifyBalances" class="refresh-btn">🔄 查询</button></h3>
-            <div id="balanceVerification"></div>
-            <h3>📋 增发扫描 <button id="quickScanBtn" class="success">⚡ 快速</button> <button id="fullScanBtn" class="purple-btn">🔍 完整</button></h3>
-            <div class="progress"><div id="progressBar"></div></div>
-            <div id="scanProgress" style="font-size:0.8rem; color:var(--text2);"></div>
+        <!-- 面板们 -->
+        <div id="panel-token" class="card"><h2>📊 代币数据</h2><div class="data-grid" id="tokenData"></div></div>
+        <div id="panel-tax" class="card hidden"><h2>🧾 税率</h2><div class="data-grid" id="taxData"></div>
+            <h3>修改交易税率 (6项,基点)</h3><div class="input-group" id="taxSetters"></div>
+            <h3>修改流动性税率</h3><div class="input-group" id="liqTaxSetters"></div></div>
+        <div id="panel-stabilize" class="card hidden"><h2>⚖️ 稳定机制</h2><div class="data-grid" id="stabilizeData"></div>
+            <h3>每日触发</h3><div class="data-grid" id="dailyTriggerData"></div>
+            <h3>地址</h3><div class="data-grid" id="stabilizeAddresses"></div>
+            <h3>余额 <button id="verifyBalances">🔄 查询</button></h3><div id="balanceVerification"></div>
+            <h3>增发扫描 <button id="quickScanBtn">⚡快速</button> <button id="fullScanBtn">🔍完整</button></h3>
+            <div class="progress"><div id="progressBar" style="height:8px;background:var(--accent);width:0%;"></div></div>
             <div id="scanResult"></div>
-            <hr>
-            <h3>✏️ 设置稳定参数 <span style="font-size:0.8rem;color:var(--text2);">— 阈值:代币个数，百分比:基点，每日上限:整数</span></h3>
-            <div class="input-group" id="stabilizeSetters"></div>
-            <div class="input-group">
-                <button id="toggleAutoBtn" class="purple-btn">🔄 切换自动触发</button>
-                <button id="forceResetStateBtn" class="danger">🔴 强制重置状态</button>
-            </div>
+            <h3>设置参数 (阈值:代币个数, 百分比:基点, 上限:整数)</h3><div class="input-group" id="stabilizeSetters"></div>
+            <div class="input-group"><button id="toggleAutoBtn">🔄 切换自动</button><button id="forceResetStateBtn" class="danger">🔴 重置状态</button></div>
         </div>
-
-        <!-- LP挖矿面板 -->
-        <div id="panel-lp" class="card hidden">
-            <h2>💧 LP 挖矿</h2>
-            <div class="data-grid" id="lpData"></div>
-            <h3>✏️ 设置参数 <span style="font-size:0.8rem;color:var(--text2);">— 奖励基数:代币个数，最低LP:LP个数(自动转18位)，上级持仓:代币个数</span></h3>
-            <div class="input-group" id="lpSetters"></div>
-            <h3>🚫 排除/恢复 LP 提供者</h3>
-            <div class="input-group" id="lpExcludeSetters"></div>
-            <h3>📋 LP列表 <button id="scanLpProviders" class="teal-btn">扫描</button></h3>
-            <div id="lpProvidersList" style="font-size:0.82rem; max-height:300px; overflow-y:auto;"></div>
-        </div>
-
-        <!-- 邀请面板 -->
-        <div id="panel-invite" class="card hidden">
-            <h2>👥 邀请系统</h2>
-            <div class="data-grid" id="inviteData"></div>
-            <h3>✏️ 设置参数 <span style="font-size:0.8rem;color:var(--text2);">— 比例和为100%</span></h3>
-            <div class="input-group" id="inviteSetters"></div>
-            <h3>🔍 查询</h3>
-            <div class="input-group" id="inviteQuery"></div>
-            <div id="inviteQueryResult" class="event-log"></div>
-        </div>
-
-        <!-- 高级面板 -->
-        <div id="panel-advanced" class="card hidden">
-            <h2>⚙️ 高级控制</h2>
-            <div class="data-grid" id="advancedData"></div>
-            <h3>✏️ 设置参数</h3>
-            <div class="input-group" id="advancedSetters"></div>
-            <h3>🔘 开关</h3>
-            <div class="input-group" id="advancedToggles"></div>
-        </div>
-
-        <!-- 管理面板 -->
-        <div id="panel-admin" class="card hidden">
-            <h2>🛡️ 管理员</h2>
-            <div class="data-grid" id="adminData"></div>
-            <h3>🔧 核心操作</h3>
-            <div class="input-group" id="adminActions"></div>
-            <h3>📋 名单</h3>
-            <div class="input-group" id="adminLists"></div>
-            <h3>💼 其他</h3>
-            <div class="input-group" id="adminExtra"></div>
-        </div>
+        <div id="panel-lp" class="card hidden"><h2>💧 LP挖矿</h2><div class="data-grid" id="lpData"></div>
+            <h3>设置 (奖励:代币, 最低LP:LP个数, 上级:代币)</h3><div class="input-group" id="lpSetters"></div>
+            <h3>排除/恢复</h3><div class="input-group" id="lpExcludeSetters"></div>
+            <h3>LP列表 <button id="scanLpProviders">扫描</button></h3><div id="lpProvidersList"></div></div>
+        <div id="panel-invite" class="card hidden"><h2>👥 邀请</h2><div class="data-grid" id="inviteData"></div>
+            <h3>设置 (比例和=100%)</h3><div class="input-group" id="inviteSetters"></div>
+            <h3>查询</h3><div class="input-group" id="inviteQuery"></div><div id="inviteQueryResult" class="event-log"></div></div>
+        <div id="panel-advanced" class="card hidden"><h2>⚙️ 高级</h2><div class="data-grid" id="advancedData"></div>
+            <h3>设置</h3><div class="input-group" id="advancedSetters"></div>
+            <h3>开关</h3><div class="input-group" id="advancedToggles"></div></div>
+        <div id="panel-admin" class="card hidden"><h2>🛡️ 管理</h2><div class="data-grid" id="adminData"></div>
+            <h3>核心操作</h3><div class="input-group" id="adminActions"></div>
+            <h3>名单</h3><div class="input-group" id="adminLists"></div>
+            <h3>其他</h3><div class="input-group" id="adminExtra"></div></div>
     </div>
 
     <script>
         (function() {
-            const RPC_LIST = [
-                "https://1rpc.io/bnb",
-                "https://bsc-dataseed1.ninicoin.io",
-                "https://bsc-dataseed2.bnbchain.org",
-                "https://bsc.blockpi.network/v1/rpc/public",
-                "https://bsc-dataseed.binance.org/"
-            ];
-            let rpcIndex = 0;
+            const RPC_LIST = ["https://1rpc.io/bnb", "https://bsc-dataseed1.ninicoin.io", "https://bsc-dataseed2.bnbchain.org", "https://bsc.blockpi.network/v1/rpc/public"];
+            let rpcIdx = 0;
             let provider = new ethers.providers.JsonRpcProvider(RPC_LIST[0]);
-            let signer = null;
-            let contract = null;
-            let currentAddr = "";
-            let tokenDecimals = 18;
-            let currencyAddress = "";
-            let currencyIsEth = false;
-            let currencyDecimals = 18;
-            let lpDistributorAddr = "";
+            let signer = null,
+                contract = null,
+                currentAddr = "",
+                tokenDec = 18,
+                currAddr = "",
+                currIsEth = false,
+                currDec = 18,
+                lpDist = "";
 
             const abi = [
                 "function name() view returns (string)",
@@ -405,7 +257,6 @@
                 "function addLiquidityFee() view returns (uint256)",
                 "function removeLiquidityFee() view returns (uint256)",
                 "function numTokensSellRate() view returns (uint256)",
-                "function _swapPairList(address) view returns (bool)",
                 "function kb() view returns (uint256)",
                 "function startTradeBlock() view returns (uint256)",
                 "function airdropNumbs() view returns (uint256)",
@@ -421,7 +272,6 @@
                 "function _progressMineLPBlock() view returns (uint256)",
                 "function _progressMineLPBlockDebt() view returns (uint256)",
                 "function _currentMineLPIndex() view returns (uint256)",
-                "function _lastMineLPRewardTimes(address) view returns (uint256)",
                 "function _mineLPRewardTimeDebt() view returns (uint256)",
                 "function _lastMaybeAddLPAddress() view returns (address)",
                 "function _lastMaybeAddLPAmount() view returns (uint256)",
@@ -480,685 +330,478 @@
                 "function setAddLiquidityFee(uint256) external",
                 "function setRemoveLiquidityFee(uint256) external",
                 "function setExcludeLPProvider(address,bool) external",
-                "function setClaims(address,uint256) external"
+                "function setClaims(address,uint256) external",
+                "event Transfer(address indexed,address indexed,uint256)"
             ];
 
-            async function switchRPC() {
-                rpcIndex = (rpcIndex + 1) % RPC_LIST.length;
-                provider = new ethers.providers.JsonRpcProvider(RPC_LIST[rpcIndex]);
-                if (currentAddr) contract = new ethers.Contract(currentAddr, abi, signer || provider);
-            }
+            async function switchRPC() { rpcIdx = (rpcIdx + 1) % RPC_LIST.length;
+                provider = new ethers.providers.JsonRpcProvider(RPC_LIST[rpcIdx]); if (currentAddr) contract = new ethers
+                    .Contract(currentAddr, abi, signer || provider); }
 
-            async function withRetry(fn, retries = 4) {
-                for (let i = 0; i < retries; i++) {
-                    try { return await fn(); } catch (e) {
-                        if (i < retries - 1 && (e.message.includes('network') || e.message.includes('timeout') || e
-                                .message.includes('429'))) {
-                            await switchRPC();
-                            await new Promise(r => setTimeout(r, 800));
-                        } else throw e;
-                    }
-                }
-            }
+            async function retry(fn) { for (let i = 0; i < 4; i++) { try { return await fn(); } catch (e) { if (i < 3 && (e
+                        .message.includes('network') || e.message.includes('timeout') || e.message.includes('429'))) { await switchRPC
+                        (); await new Promise(r => setTimeout(r, 800)); } else throw e; } } }
 
-            function toWei(val, dec = tokenDecimals) {
-                try { return ethers.utils.parseUnits(String(val || '0'), dec); } catch { return ethers.BigNumber.from(
-                    '0'); }
-            }
+            function toWei(v, d = tokenDec) { try { return ethers.utils.parseUnits(String(v || '0'), d); } catch { return ethers
+                    .BigNumber.from('0'); } }
 
-            function toLPWei(val) { // LP精度通常为18
-                try { return ethers.utils.parseUnits(String(val || '0'), 18); } catch { return ethers.BigNumber.from(
-                    '0'); }
-            }
+            function toLPWei(v) { return toWei(v, 18); }
 
-            function fromWei(val, dec = tokenDecimals) {
-                try { return ethers.utils.formatUnits(val, dec); } catch { return String(val); }
-            }
+            function fmt(v, d = tokenDec) { try { return ethers.utils.formatUnits(v, d); } catch { return String(v); } }
 
-            function bnToNum(bn) { try { return Number(ethers.utils.formatUnits(bn, 0)); } catch { return Number(bn); } }
+            function num(v) { try { return Number(ethers.utils.formatUnits(v, 0)); } catch { return Number(v); } }
 
-            function formatAddr(addr) {
-                if (!addr || addr === '0x0000000000000000000000000000000000000000') return '0x0';
-                return addr.slice(0, 6) + '...' + addr.slice(-4);
-            }
+            function addr(a) { return !a || a === '0x0000000000000000000000000000000000000000' ? '0x0' : a.slice(0, 6) + '...' +
+                    a.slice(-4); }
 
-            function tsToDate(ts) {
-                if (!ts || ts == 0) return '未设置';
-                return new Date(Number(ts) * 1000).toLocaleString('zh-CN');
-            }
+            function date(ts) { return ts && ts != 0 ? new Date(Number(ts) * 1000).toLocaleString() : '未设置'; }
 
             // 标签切换
             document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function() {
                 document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
                 this.classList.add('active');
-                const panel = this.dataset.tab;
-                document.querySelectorAll('[id^="panel-"]').forEach(p => p.classList.add('hidden'));
-                document.getElementById('panel-' + panel).classList.remove('hidden');
-                loadPanel(panel);
+                const p = this.dataset.tab;
+                document.querySelectorAll('[id^="panel-"]').forEach(x => x.classList.add('hidden'));
+                document.getElementById('panel-' + p).classList.remove('hidden');
+                loadPanel(p);
             }));
-
             document.getElementById('connectWallet').onclick = async () => {
-                if (!window.ethereum) return alert('请安装MetaMask');
+                if (!window.ethereum) return alert('安装MetaMask');
                 await window.ethereum.request({ method: 'eth_requestAccounts' });
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 signer = provider.getSigner();
-                const addr = await signer.getAddress();
-                document.getElementById('walletAddress').textContent = '✅ ' + formatAddr(addr);
-                if (currentAddr) {
-                    contract = new ethers.Contract(currentAddr, abi, signer || provider);
-                    const activeTab = document.querySelector('.tab.active');
-                    if (activeTab) loadPanel(activeTab.dataset.tab);
-                }
+                document.getElementById('walletAddress').textContent = '✅ ' + addr(await signer.getAddress());
+                if (currentAddr) { contract = new ethers.Contract(currentAddr, abi, signer);
+                    loadPanel(document.querySelector('.tab.active').dataset.tab); }
             };
-
-            async function loadContract() {
-                const addr = document.getElementById('contractAddress').value.trim();
-                if (!ethers.utils.isAddress(addr)) return alert('地址无效');
-                currentAddr = addr;
-                localStorage.setItem('crc_addr_v7_4', addr);
-                document.getElementById('contractStatus').innerHTML = '⏳ 验证合约...';
+            document.getElementById('loadContract').onclick = async () => {
+                const a = document.getElementById('contractAddress').value.trim();
+                if (!ethers.utils.isAddress(a)) return alert('无效地址');
+                currentAddr = a;
+                localStorage.setItem('crc8', a);
+                document.getElementById('contractStatus').textContent = '加载中...';
                 try {
-                    const code = await withRetry(() => provider.getCode(addr));
-                    if (code === '0x') { document.getElementById('contractStatus').innerHTML = '❌ 不是合约'; return; }
-                    contract = new ethers.Contract(addr, abi, signer || provider);
-                    const [dec, cur, isEth, dist] = await Promise.all([
-                        withRetry(() => contract.decimals()),
-                        withRetry(() => contract.currency()),
-                        withRetry(() => contract.currencyIsEth()),
-                        withRetry(() => contract._LPRewardDistributor())
-                    ]);
-                    tokenDecimals = bnToNum(dec);
-                    currencyAddress = cur;
-                    currencyIsEth = isEth;
-                    lpDistributorAddr = dist;
-                    if (currencyIsEth) currencyDecimals = 18;
-                    else {
-                        try {
-                            currencyDecimals = bnToNum(await withRetry(() => new ethers.Contract(currencyAddress, [
-                                'function decimals() view returns (uint256)'
-                            ], provider).decimals()));
-                        } catch { currencyDecimals = 18; }
-                    }
-                    document.getElementById('contractStatus').innerHTML = '✅ 合约已加载 · 精度:' + tokenDecimals;
+                    const code = await retry(() => provider.getCode(a));
+                    if (code === '0x') { document.getElementById('contractStatus').textContent = '不是合约'; return; }
+                    contract = new ethers.Contract(a, abi, signer || provider);
+                    [tokenDec, currAddr, currIsEth, lpDist] = await Promise.all([retry(() => contract.decimals()), retry(
+                        () => contract.currency()), retry(() => contract.currencyIsEth()), retry(() => contract
+                        ._LPRewardDistributor())]);
+                    tokenDec = num(tokenDec);
+                    if (currIsEth) currDec = 18;
+                    else try { currDec = num(await retry(() => new ethers.Contract(currAddr, [
+                            'function decimals() view returns (uint256)'
+                        ], provider).decimals())); } catch { currDec = 18; }
+                    document.getElementById('contractStatus').textContent = '✅ 已加载';
                     document.querySelector('.tab[data-tab="token"]').click();
-                } catch (e) { document.getElementById('contractStatus').innerHTML = '❌ 加载失败: ' + e.message; }
-            }
-
-            document.getElementById('loadContract').onclick = loadContract;
-            document.getElementById('saveAddress').onclick = () => localStorage.setItem('crc_addr_v7_4', document
-                .getElementById('contractAddress').value.trim());
-            document.getElementById('autoLoadBtn').onclick = () => {
-                const saved = localStorage.getItem('crc_addr_v7_4');
-                if (saved) { document.getElementById('contractAddress').value = saved;
-                    loadContract(); } else alert('无保存地址');
+                } catch (e) { document.getElementById('contractStatus').textContent = '❌ ' + e.message; }
             };
+            document.getElementById('saveAddress').onclick = () => localStorage.setItem('crc8', document.getElementById(
+                'contractAddress').value.trim());
+            document.getElementById('autoLoadBtn').onclick = () => { const s = localStorage.getItem('crc8'); if (s) { document
+                    .getElementById('contractAddress').value = s;
+                    document.getElementById('loadContract').click(); } else alert('无保存'); };
 
-            async function loadPanel(panel) {
+            async function loadPanel(p) {
                 if (!contract) return;
-                switch (panel) {
+                switch (p) {
                     case 'token':
-                        await loadToken();
-                        break;
+                        return loadToken();
                     case 'tax':
-                        await loadTax();
-                        break;
+                        return loadTax();
                     case 'stabilize':
-                        await loadStabilize();
-                        break;
+                        return loadStabilize();
                     case 'lp':
-                        await loadLP();
-                        break;
+                        return loadLP();
                     case 'invite':
-                        await loadInvite();
-                        break;
+                        return loadInvite();
                     case 'advanced':
-                        await loadAdvanced();
-                        break;
+                        return loadAdvanced();
                     case 'admin':
-                        await loadAdmin();
-                        break;
+                        return loadAdmin();
                 }
             }
 
             async function loadToken() {
-                const [name, sym, total, circ, own, mainPair, dead, fund, swapRouter, tokDist, lpDist] = await Promise
-                .all([
-                    contract.name(), contract.symbol(), contract.totalSupply(),
-                    contract.getCirculatingSupply(), contract.owner(), contract._mainPair(),
-                    contract.deadAddress(), contract.fundAddress(), contract._swapRouter(),
-                    contract._tokenDistributor(), contract._LPRewardDistributor()
+                const [n, s, t, c, o, mp, d, f, sr, td, ld] = await Promise.all([contract.name(), contract.symbol(),
+                    contract.totalSupply(), contract.getCirculatingSupply(), contract.owner(), contract._mainPair(),
+                    contract.deadAddress(), contract.fundAddress(), contract._swapRouter(), contract._tokenDistributor(),
+                    contract._LPRewardDistributor()
                 ]);
-                document.getElementById('tokenData').innerHTML = `
-                <div class="data-item"><label>📛 名称</label><span>${name}</span></div>
-                <div class="data-item"><label>🏷️ 符号</label><span>${sym}</span></div>
-                <div class="data-item"><label>🔢 精度</label><span>${tokenDecimals}</span></div>
-                <div class="data-item"><label>📦 总供应</label><span>${fromWei(total)}</span></div>
-                <div class="data-item"><label>🔄 流通量</label><span>${fromWei(circ)}</span></div>
-                <div class="data-item"><label>👑 Owner</label><span>${own}</span></div>
-                <div class="data-item"><label>💧 主交易对</label><span>${mainPair}</span></div>
-                <div class="data-item"><label>💀 销毁地址</label><span>${dead}</span></div>
-                <div class="data-item"><label>💰 基金地址</label><span>${fund}</span></div>
-                <div class="data-item"><label>🔀 路由</label><span>${swapRouter}</span></div>
-                <div class="data-item"><label>📤 TokenDistributor</label><span>${tokDist}</span></div>
-                <div class="data-item"><label>🎁 LPRewardDistributor</label><span>${lpDist}</span></div>`;
+                document.getElementById('tokenData').innerHTML = ['名称', n, '符号', s, '精度', tokenDec, '总供应', fmt(t),
+                    '流通量', fmt(c), 'Owner', o, '主交易对', mp, '销毁', d, '基金', f, '路由', sr, 'Token分发器', td, 'LP分发器',
+                    ld
+                ].reduce((h, v, i, a) => i % 2 === 0 ? h +
+                    `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
             }
-
             async function loadTax() {
-                const [bf, blp, bb, sf, slp, sb, add, rem, chTax, numSell] = await Promise.all([
-                    contract._buyFundFee(), contract._buyLPFee(), contract.buy_burnFee(),
-                    contract._sellFundFee(), contract._sellLPFee(), contract.sell_burnFee(),
-                    contract.addLiquidityFee(), contract.removeLiquidityFee(), contract.enableChangeTax(),
+                const [bf, bl, bb, sf, sl, sb, af, rf, ct, ns] = await Promise.all([contract._buyFundFee(), contract
+                    ._buyLPFee(), contract.buy_burnFee(), contract._sellFundFee(), contract._sellLPFee(), contract
+                    .sell_burnFee(), contract.addLiquidityFee(), contract.removeLiquidityFee(), contract.enableChangeTax(),
                     contract.numTokensSellRate()
                 ]);
-                const buyTotal = bnToNum(bf) + bnToNum(blp) + bnToNum(bb);
-                const sellTotal = bnToNum(sf) + bnToNum(slp) + bnToNum(sb);
-                document.getElementById('taxData').innerHTML = `
-                <div class="data-item"><label>📥 买入基金</label><span>${bnToNum(bf)} 基点</span></div>
-                <div class="data-item"><label>📥 买入LP</label><span>${bnToNum(blp)} 基点</span></div>
-                <div class="data-item"><label>📥 买入销毁</label><span>${bnToNum(bb)} 基点</span></div>
-                <div class="data-item"><label>📤 卖出基金</label><span>${bnToNum(sf)} 基点</span></div>
-                <div class="data-item"><label>📤 卖出LP</label><span>${bnToNum(slp)} 基点</span></div>
-                <div class="data-item"><label>📤 卖出销毁</label><span>${bnToNum(sb)} 基点</span></div>
-                <div class="data-item"><label>➕ 添加流动性</label><span>${bnToNum(add)} 基点</span></div>
-                <div class="data-item"><label>➖ 移除流动性</label><span>${bnToNum(rem)} 基点</span></div>
-                <div class="data-item"><label>📊 买入总税</label><span style="color:${buyTotal>=2500?'var(--danger)':'var(--accent2)'}">${buyTotal}</span></div>
-                <div class="data-item"><label>📊 卖出总税</label><span style="color:${sellTotal>=2500?'var(--danger)':'var(--accent2)'}">${sellTotal}</span></div>
-                <div class="data-item"><label>🔒 税率可改</label><span>${chTax?'✅':'❌'}</span></div>
-                <div class="data-item"><label>📐 卖出触发%</label><span>${bnToNum(numSell)}%</span></div>`;
-                document.getElementById('taxSetters').innerHTML = `
-                <input id="tx1" placeholder="买入基金"><input id="tx2" placeholder="买入LP"><input id="tx3" placeholder="买入销毁">
-                <input id="tx4" placeholder="卖出基金"><input id="tx5" placeholder="卖出LP"><input id="tx6" placeholder="卖出销毁">
-                <button id="setTaxesBtn" class="success">✏️ 批量更新</button>`;
-                document.getElementById('setTaxesBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const v = ['tx1', 'tx2', 'tx3', 'tx4', 'tx5', 'tx6'].map(id => parseInt(document.getElementById(
-                        id).value));
-                    if (v.some(isNaN)) return alert('请输入整数基点');
-                    if (v[0] + v[1] + v[2] >= 2500 || v[3] + v[4] + v[5] >= 2500) return alert('总税需<2500');
+                const bt = num(bf) + num(bl) + num(bb),
+                    st = num(sf) + num(sl) + num(sb);
+                document.getElementById('taxData').innerHTML = ['买入基金', `${num(bf)}bp`, '买入LP', `${num(bl)}bp`, '买入销毁',
+                    `${num(bb)}bp`, '卖出基金', `${num(sf)}bp`, '卖出LP', `${num(sl)}bp`, '卖出销毁', `${num(sb)}bp`, '添加流动性',
+                    `${num(af)}bp`, '移除流动性', `${num(rf)}bp`, '买入总税', `${bt}`, '卖出总税', `${st}`, '税率可改', ct ?
+                    '✅' : '❌', '卖出触发%', `${num(ns)}%`
+                ].reduce((h, v, i, a) => i % 2 === 0 ? h +
+                    `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
+                document.getElementById('taxSetters').innerHTML = ['tx1', 'tx2', 'tx3', 'tx4', 'tx5', 'tx6'].map(id =>
+                    `<input id="${id}" placeholder="${['买入基金','买入LP','买入销毁','卖出基金','卖出LP','卖出销毁'][id.charCodeAt(2)-49]}">`
+                ).join('') + '<button id="setTaxBtn" class="success">更新</button>';
+                document.getElementById('setTaxBtn').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const v = ['tx1', 'tx2', 'tx3', 'tx4', 'tx5', 'tx6'].map(id => parseInt(document.getElementById(id)
+                        .value));
+                    if (v.some(isNaN)) return alert('输入整数基点');
+                    if (v[0] + v[1] + v[2] >= 2500 || v[3] + v[4] + v[5] >= 2500) return alert('总税<2500');
                     try { await (await contract.connect(signer).completeCustoms(v)).wait();
-                        alert('✅ 已更新');
-                        loadPanel('tax'); } catch (e) { alert('❌ ' + e.message); }
+                        loadPanel('tax'); } catch (e) { alert(e.message); }
                 };
-                document.getElementById('liqTaxSetters').innerHTML = `
-                <input id="liqAddFee" placeholder="添加流动性税(基点)"><input id="liqRemFee" placeholder="移除流动性税(基点)">
-                <button id="setLiqTaxesBtn" class="success">✏️ 更新</button>`;
-                document.getElementById('setLiqTaxesBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const addVal = parseInt(document.getElementById('liqAddFee').value);
-                    const remVal = parseInt(document.getElementById('liqRemFee').value);
+                document.getElementById('liqTaxSetters').innerHTML =
+                    '<input id="liqAdd" placeholder="添加税"><input id="liqRem" placeholder="移除税"><button id="setLiqBtn" class="success">更新</button>';
+                document.getElementById('setLiqBtn').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const a = parseInt(document.getElementById('liqAdd').value),
+                        r = parseInt(document.getElementById('liqRem').value);
                     try {
-                        if (!isNaN(addVal)) await (await contract.connect(signer).setAddLiquidityFee(addVal))
-                    .wait();
-                        if (!isNaN(remVal)) await (await contract.connect(signer).setRemoveLiquidityFee(remVal))
-                            .wait();
-                        alert('✅ 已更新');
+                        if (!isNaN(a)) await (await contract.connect(signer).setAddLiquidityFee(a)).wait();
+                        if (!isNaN(r)) await (await contract.connect(signer).setRemoveLiquidityFee(r)).wait();
                         loadPanel('tax');
-                    } catch (e) { alert('❌ ' + e.message); }
+                    } catch (e) { alert(e.message); }
                 };
             }
-
             async function loadStabilize() {
-                const [buyAmt, sellAmt, buyTh, sellTh, perc, en, dist, maxDaily, dailyCount, lastReset, trigState,
-                    lockedBuy, lockedSell, buyFrozen, sellFrozen
-                ] = await Promise.all([
-                    contract.totalBuyAmount(), contract.totalSellAmount(), contract.buyTriggerThreshold(),
-                    contract.sellTriggerThreshold(), contract.triggerActionPercent(), contract.enableAutoTrigger(),
-                    contract._LPRewardDistributor(), contract.maxDailyTriggers(), contract.dailyTriggerCount(),
-                    contract.lastDayReset(), contract.triggerState(), contract.lockedBuyAmount(),
-                    contract.lockedSellAmount(), contract.buyRecordFrozen(), contract.sellRecordFrozen()
+                const [ba, sa, bt, st, p, en, d, md, dc, lr, ts, lb, ls, bf, sf] = await Promise.all([contract
+                    .totalBuyAmount(), contract.totalSellAmount(), contract.buyTriggerThreshold(), contract
+                    .sellTriggerThreshold(), contract.triggerActionPercent(), contract.enableAutoTrigger(), contract
+                    ._LPRewardDistributor(), contract.maxDailyTriggers(), contract.dailyTriggerCount(), contract
+                    .lastDayReset(), contract.triggerState(), contract.lockedBuyAmount(), contract.lockedSellAmount(),
+                    contract.buyRecordFrozen(), contract.sellRecordFrozen()
                 ]);
-                const maxUint = ethers.constants.MaxUint256;
-                const stateNames = ['无', '待卖出', '待买入'];
-                document.getElementById('stabilizeData').innerHTML = `
-                <div class="data-item"><label>📈 累计买入</label><span>${fromWei(buyAmt)}</span></div>
-                <div class="data-item"><label>📉 累计卖出</label><span>${fromWei(sellAmt)}</span></div>
-                <div class="data-item"><label>🎯 买入阈值</label><span>${buyTh.eq(maxUint)?'未设置':fromWei(buyTh)}</span></div>
-                <div class="data-item"><label>🎯 卖出阈值</label><span>${sellTh.eq(maxUint)?'未设置':fromWei(sellTh)}</span></div>
-                <div class="data-item"><label>📐 执行%</label><span>${bnToNum(perc)} 基点</span></div>
-                <div class="data-item"><label>🔁 自动</label><span>${en?'✅':'❌'}</span></div>
-                <div class="data-item"><label>🚦 状态</label><span>${stateNames[bnToNum(trigState)]||'未知'}</span></div>
-                <div class="data-item"><label>🔒 锁定买入</label><span>${fromWei(lockedBuy)}</span></div>
-                <div class="data-item"><label>🔒 锁定卖出</label><span>${fromWei(lockedSell)}</span></div>
-                <div class="data-item"><label>🧊 买入冻结</label><span>${buyFrozen?'🔴':'🟢'}</span></div>
-                <div class="data-item"><label>🧊 卖出冻结</label><span>${sellFrozen?'🔴':'🟢'}</span></div>`;
-                document.getElementById('dailyTriggerData').innerHTML = `
-                <div class="data-item"><label>📅 每日上限</label><span>${bnToNum(maxDaily)}</span></div>
-                <div class="data-item"><label>🔢 今日已触发</label><span>${bnToNum(dailyCount)}</span></div>
-                <div class="data-item"><label>🕐 上次重置</label><span>${tsToDate(lastReset)}</span></div>`;
-                document.getElementById('stabilizeAddresses').innerHTML = `
-                <div class="data-item"><label>📦 合约</label><span>${currentAddr}</span></div>
-                <div class="data-item"><label>🎁 分发器</label><span>${dist}</span></div>`;
-                document.getElementById('stabilizeSetters').innerHTML = `
-                <input id="sBuyTh" placeholder="买入阈值(代币个数)"><input id="sSellTh" placeholder="卖出阈值(代币个数)">
-                <input id="sPerc" placeholder="执行百分比(基点)"><input id="sMaxDaily" placeholder="每日上限(整数)">
-                <button id="setStabilizeBtn" class="success">✏️ 更新</button>`;
-                document.getElementById('setStabilizeBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const buyTh = toWei(document.getElementById('sBuyTh').value || '0');
-                    const sellTh = toWei(document.getElementById('sSellTh').value || '0');
-                    const perc = parseInt(document.getElementById('sPerc').value) || 0;
-                    const maxD = parseInt(document.getElementById('sMaxDaily').value) || 5;
-                    try {
-                        await (await contract.connect(signer).setAutoTriggerParams(buyTh, sellTh, perc, maxD))
-                            .wait();
-                        alert('✅ 已更新');
-                        loadPanel('stabilize');
-                    } catch (e) { alert('❌ ' + e.message); }
+                const stN = ['无', '待卖出', '待买入'];
+                document.getElementById('stabilizeData').innerHTML = ['累计买入', fmt(ba), '累计卖出', fmt(sa), '买入阈值', bt.eq(
+                    ethers.constants.MaxUint256) ? '未设置' : fmt(bt), '卖出阈值', st.eq(ethers.constants.MaxUint256) ? '未设置' :
+                    fmt(st), '执行%', `${num(p)}bp`, '自动', en ? '✅' : '❌', '状态', stN[num(ts)] || '?', '锁定买入', fmt(lb),
+                    '锁定卖出', fmt(ls), '买入冻结', bf ? '🔴' : '🟢', '卖出冻结', sf ? '🔴' : '🟢'
+                ].reduce((h, v, i, a) => i % 2 === 0 ? h +
+                    `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
+                document.getElementById('dailyTriggerData').innerHTML = ['每日上限', num(md), '今日已触发', num(dc), '上次重置', date(
+                    lr)].reduce((h, v, i, a) => i % 2 === 0 ? h +
+                    `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
+                document.getElementById('stabilizeAddresses').innerHTML = ['合约', currentAddr, '分发器', d].reduce((h, v, i,
+                    a) => i % 2 === 0 ? h + `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` :
+                    h, '');
+                document.getElementById('stabilizeSetters').innerHTML =
+                    '<input id="sbt" placeholder="买入阈值(代币)"><input id="sst" placeholder="卖出阈值(代币)"><input id="sp" placeholder="执行%(基点)"><input id="smd" placeholder="每日上限"><button id="setStbBtn" class="success">更新</button>';
+                document.getElementById('setStbBtn').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const buy = toWei(document.getElementById('sbt').value || '0'),
+                        sell = toWei(document.getElementById('sst').value || '0'),
+                        p = parseInt(document.getElementById('sp').value) || 0,
+                        md = parseInt(document.getElementById('smd').value) || 5;
+                    try { await (await contract.connect(signer).setAutoTriggerParams(buy, sell, p, md)).wait();
+                        loadPanel('stabilize'); } catch (e) { alert(e.message); }
                 };
-                document.getElementById('toggleAutoBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const cur = await contract.enableAutoTrigger();
-                    await (await contract.connect(signer).setEnableAutoTrigger(!cur)).wait();
-                    loadPanel('stabilize');
-                };
-                document.getElementById('forceResetStateBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    if (!confirm('强制重置稳定状态？')) return;
+                document.getElementById('toggleAutoBtn').onclick = async () => { const cur = await contract
+                        .enableAutoTrigger(); await (await contract.connect(signer).setEnableAutoTrigger(!cur)).wait();
+                    loadPanel('stabilize'); };
+                document.getElementById('forceResetStateBtn').onclick = async () => { if (!confirm('重置？')) return;
                     await (await contract.connect(signer).forceResetTriggerState()).wait();
-                    loadPanel('stabilize');
-                };
+                    loadPanel('stabilize'); };
                 document.getElementById('verifyBalances').onclick = async () => {
                     const div = document.getElementById('balanceVerification');
-                    div.innerHTML = '查询中...';
+                    div.textContent = '查询中...';
                     try {
-                        let currBal;
-                        if (currencyIsEth) currBal = await provider.getBalance(currentAddr);
-                        else currBal = await new ethers.Contract(currencyAddress, [
-                            'function balanceOf(address) view returns (uint256)'
-                        ], provider).balanceOf(currentAddr);
-                        const tokenBal = await contract.balanceOf(lpDistributorAddr);
-                        const contractToken = await contract.balanceOf(currentAddr);
-                        div.innerHTML =
-                            `<div class="event-log">💵 合约稳定币: <b>${ethers.utils.formatUnits(currBal, currencyDecimals)}</b><br>🎁 分发器代币: <b>${fromWei(tokenBal)}</b><br>📦 合约自身代币: <b>${fromWei(contractToken)}</b></div>`;
-                    } catch (e) { div.innerHTML = '❌ ' + e.message; }
+                        let cb;
+                        if (currIsEth) cb = await provider.getBalance(currentAddr);
+                        else cb = await new ethers.Contract(currAddr, ['function balanceOf(address) view returns(uint256)'],
+                            provider).balanceOf(currentAddr);
+                        const tb = await contract.balanceOf(lpDist),
+                            ct = await contract.balanceOf(currentAddr);
+                        div.innerHTML = `稳定币: <b>${ethers.utils.formatUnits(cb,currDec)}</b><br>分发器代币: <b>${fmt(tb)}</b><br>合约代币: <b>${fmt(ct)}</b>`;
+                    } catch (e) { div.textContent = e.message; }
                 };
                 document.getElementById('quickScanBtn').onclick = () => scanEvents(true);
                 document.getElementById('fullScanBtn').onclick = () => scanEvents(false);
             }
-
             async function scanEvents(quick) {
-                const progressBar = document.getElementById('progressBar');
-                const progressText = document.getElementById('scanProgress');
-                const resultDiv = document.getElementById('scanResult');
-                resultDiv.innerHTML = '';
-                progressBar.style.width = '0%';
-                if (!contract) return;
+                const bar = document.getElementById('progressBar'),
+                    txt = document.getElementById('scanProgress'),
+                    out = document.getElementById('scanResult');
+                out.innerHTML = '';
+                bar.style.width = '0%';
                 try {
-                    const latest = await withRetry(() => provider.getBlockNumber());
-                    let fromBlock;
-                    if (quick) fromBlock = Math.max(1, latest - 50000);
-                    else {
-                        if (!deployBlock) { progressText.textContent = '定位部署块...';
-                            deployBlock = await findDeployBlock(); }
-                        fromBlock = deployBlock || 1;
-                    }
-                    const chunkSize = 2000;
-                    const mintLogs = [];
-                    for (let start = fromBlock; start <= latest; start += chunkSize) {
-                        const end = Math.min(start + chunkSize - 1, latest);
-                        progressBar.style.width = Math.floor((start - fromBlock) / (latest - fromBlock) * 100) + '%';
-                        progressText.textContent = `${start}-${end}`;
-                        const logs = await withRetry(() => provider.getLogs({
+                    const latest = await retry(() => provider.getBlockNumber());
+                    let from = quick ? Math.max(1, latest - 50000) : (deployBlock || await findDeploy());
+                    deployBlock = from;
+                    const logs = [];
+                    for (let s = from; s <= latest; s += 2000) {
+                        const e = Math.min(s + 1999, latest);
+                        bar.style.width = ((s - from) / (latest - from) * 100) + '%';
+                        const l = await retry(() => provider.getLogs({
                             address: currentAddr,
                             topics: [ethers.utils.id('Transfer(address,address,uint256)'), ethers.utils
                                 .hexZeroPad('0x0000000000000000000000000000000000000000', 32), null
                             ],
-                            fromBlock: start,
-                            toBlock: end
+                            fromBlock: s,
+                            toBlock: e
                         })).catch(() => []);
-                        mintLogs.push(...logs);
-                        await new Promise(r => setTimeout(r, 40));
+                        logs.push(...l);
                     }
-                    progressBar.style.width = '100%';
-                    progressText.textContent = `完成，${mintLogs.length} 次增发`;
-                    let html = '<div class="event-log">📌 增发事件通常对应稳定卖出。<br>';
-                    if (mintLogs.length > 0) {
-                        mintLogs.slice(-5).reverse().forEach(log => {
-                            html +=
-                                `· 增发 <b>${fromWei(ethers.BigNumber.from(log.data))}</b> → <a href="https://bscscan.com/tx/${log.transactionHash}" target="_blank">查看</a><br>`;
-                        });
-                    } else html += '⚠️ 未检测到增发事件';
-                    html += '</div>';
-                    resultDiv.innerHTML = html;
-                } catch (e) { resultDiv.innerHTML = '❌ ' + e.message; }
+                    bar.style.width = '100%';
+                    let html = `共 ${logs.length} 次增发<br>`;
+                    logs.slice(-5).reverse().forEach(l => html +=
+                        `· ${fmt(ethers.BigNumber.from(l.data))} → <a href="https://bscscan.com/tx/${l.transactionHash}" target="_blank">查看</a><br>`
+                        );
+                    out.innerHTML = html;
+                } catch (e) { out.textContent = e.message; }
             }
-
-            async function findDeployBlock() {
-                const latest = await provider.getBlockNumber();
-                let low = 1,
-                    high = latest,
-                    deploy = 1;
-                while (low <= high) {
-                    const mid = Math.floor((low + high) / 2);
-                    const code = await provider.getCode(currentAddr, mid);
-                    if (code !== '0x') { deploy = mid;
-                        high = mid - 1; } else low = mid + 1;
-                }
-                return deploy;
-            }
+            async function findDeploy() { const l = await provider.getBlockNumber();
+                let lo = 1,
+                    hi = l,
+                    d = 1; while (lo <= hi) { const m = Math.floor((lo + hi) / 2); if (await provider.getCode(currentAddr,
+                        m) !== '0x') { d = m;
+                        hi = m - 1; } else lo = m + 1; } return d; }
 
             async function loadLP() {
-                const [rate, cond, minLP, minInv, dist, limitAdd, progBlock, progDebt, curIdx, timeDebt, lastAddr,
-                    lastAmt
-                ] = await Promise.all([
-                    contract.mineRate(), contract.LPRewardCondition(), contract.minLPHoldAmount(),
-                    contract.minInvitorHoldAmount(), contract._LPRewardDistributor(), contract.limitAddLiquidity(),
-                    contract._progressMineLPBlock(), contract._progressMineLPBlockDebt(), contract
-                    ._currentMineLPIndex(),
-                    contract._mineLPRewardTimeDebt(), contract._lastMaybeAddLPAddress(), contract
-                    ._lastMaybeAddLPAmount()
+                const [r, c, ml, mi, d, la, pb, pd, ci, td, lma, lam] = await Promise.all([contract.mineRate(), contract
+                    .LPRewardCondition(), contract.minLPHoldAmount(), contract.minInvitorHoldAmount(), contract
+                    ._LPRewardDistributor(), contract.limitAddLiquidity(), contract._progressMineLPBlock(), contract
+                    ._progressMineLPBlockDebt(), contract._currentMineLPIndex(), contract._mineLPRewardTimeDebt(),
+                    contract._lastMaybeAddLPAddress(), contract._lastMaybeAddLPAmount()
                 ]);
-                document.getElementById('lpData').innerHTML = `
-                <div class="data-item"><label>⛏️ 挖矿比例</label><span>${bnToNum(rate)}%</span></div>
-                <div class="data-item"><label>🎁 奖励基数</label><span>${fromWei(cond)}</span></div>
-                <div class="data-item"><label>📏 最低LP</label><span>${fromWei(minLP, 18)} LP</span></div>
-                <div class="data-item"><label>👤 上级持仓</label><span>${fromWei(minInv)}</span></div>
-                <div class="data-item"><label>📤 分发器</label><span>${dist}</span></div>
-                <div class="data-item"><label>🔒 限加流动</label><span>${limitAdd?'✅':'❌'}</span></div>
-                <div class="data-item"><label>📊 进度块</label><span>${bnToNum(progBlock)}</span></div>
-                <div class="data-item"><label>⏱️ 块间隔</label><span>${bnToNum(progDebt)}</span></div>
-                <div class="data-item"><label>📍 当前索引</label><span>${bnToNum(curIdx)}</span></div>
-                <div class="data-item"><label>🕐 奖励间隔</label><span>${bnToNum(timeDebt)}秒</span></div>
-                <div class="data-item"><label>🧑 最后添加者</label><span>${lastAddr==='0x0000000000000000000000000000000000000000'?'无':formatAddr(lastAddr)}</span></div>
-                <div class="data-item"><label>📥 最后添加量</label><span>${fromWei(lastAmt)}</span></div>`;
-                document.getElementById('lpSetters').innerHTML = `
-                <input id="lpCond" placeholder="奖励基数(代币个数)"><input id="lpMinLP" placeholder="最低LP(LP个数)">
-                <input id="lpMinInv" placeholder="上级持仓(代币个数)">
-                <button id="setLPBtn" class="success">✏️ 更新</button>`;
+                document.getElementById('lpData').innerHTML = ['挖矿比例', `${num(r)}%`, '奖励基数', fmt(c), '最低LP', fmt(ml, 18),
+                    '上级持仓', fmt(mi), '分发器', d, '限加流动', la ? '✅' : '❌', '进度块', num(pb), '块间隔', num(pd), '当前索引',
+                    num(ci), '奖励间隔', `${num(td)}秒`, '最后添加者', addr(lma), '最后添加量', fmt(lam)
+                ].reduce((h, v, i, a) => i % 2 === 0 ? h +
+                    `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
+                document.getElementById('lpSetters').innerHTML =
+                    '<input id="lc" placeholder="奖励基数"><input id="lml" placeholder="最低LP"><input id="lmi" placeholder="上级持仓"><button id="setLPBtn" class="success">更新</button>';
                 document.getElementById('setLPBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
+                    if (!signer) return alert('连接钱包');
                     const c = contract.connect(signer);
-                    const cond = document.getElementById('lpCond').value;
-                    const minLP = document.getElementById('lpMinLP').value;
-                    const minInv = document.getElementById('lpMinInv').value;
+                    const v1 = document.getElementById('lc').value,
+                        v2 = document.getElementById('lml').value,
+                        v3 = document.getElementById('lmi').value;
                     try {
-                        if (cond) await (await c.setLPRewardCondition(toWei(cond))).wait();
-                        if (minLP) await (await c.setMinLPHoldAmount(toLPWei(minLP))).wait();
-                        if (minInv) await (await c.setMinInvitorHoldAmount(toWei(minInv))).wait();
-                        alert('✅ 已更新');
+                        if (v1) await (await c.setLPRewardCondition(toWei(v1))).wait();
+                        if (v2) await (await c.setMinLPHoldAmount(toLPWei(v2))).wait();
+                        if (v3) await (await c.setMinInvitorHoldAmount(toWei(v3))).wait();
                         loadPanel('lp');
-                    } catch (e) { alert('❌ ' + e.message); }
+                    } catch (e) { alert(e.message); }
                 };
-                document.getElementById('lpExcludeSetters').innerHTML = `
-                <input id="lpExAddr" placeholder="LP地址">
-                <button id="excludeLPBtn" class="danger">排除</button>
-                <button id="restoreLPBtn" class="success">恢复</button>`;
-                document.getElementById('excludeLPBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const addr = document.getElementById('lpExAddr').value.trim();
-                    if (!ethers.utils.isAddress(addr)) return alert('地址无效');
-                    await (await contract.connect(signer).setExcludeLPProvider(addr, true)).wait();
-                    alert('已排除');
-                    loadPanel('lp');
-                };
-                document.getElementById('restoreLPBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const addr = document.getElementById('lpExAddr').value.trim();
-                    if (!ethers.utils.isAddress(addr)) return alert('地址无效');
-                    await (await contract.connect(signer).setExcludeLPProvider(addr, false)).wait();
-                    alert('已恢复');
-                    loadPanel('lp');
-                };
+                document.getElementById('lpExcludeSetters').innerHTML =
+                    '<input id="lpex" placeholder="LP地址"><button id="exclBtn" class="danger">排除</button><button id="restBtn" class="success">恢复</button>';
+                document.getElementById('exclBtn').onclick = () => exclLP(true);
+                document.getElementById('restBtn').onclick = () => exclLP(false);
                 document.getElementById('scanLpProviders').onclick = async () => {
                     const div = document.getElementById('lpProvidersList');
-                    div.innerHTML = '扫描中...';
-                    const providers = [];
-                    try {
-                        for (let i = 0; i < 500; i++) {
-                            try {
-                                const addr = await contract.lpProviders(i);
-                                if (addr === '0x0000000000000000000000000000000000000000') break;
-                                const excluded = await contract.excludeLpProvider(addr);
-                                providers.push({ addr, excluded });
-                            } catch { break; }
-                        }
-                        div.innerHTML = providers.length ? `<div class="event-log">${providers.map(p=>`· ${p.addr} ${p.excluded?'🔴排除':'🟢活跃'}`).join('<br>')}</div>` : '无记录';
-                    } catch (e) { div.innerHTML = '❌ ' + e.message; }
+                    div.textContent = '扫描中...';
+                    const p = [];
+                    for (let i = 0; i < 500; i++) { try { const a = await contract.lpProviders(i); if (a ===
+                            '0x0000000000000000000000000000000000000000') break;
+                            p.push(a); } catch { break; } }
+                    div.innerHTML = p.map(a => a).join('<br>');
                 };
+            }
+            async function exclLP(v) {
+                if (!signer) return alert('连接钱包');
+                const a = document.getElementById('lpex').value.trim();
+                if (!ethers.utils.isAddress(a)) return alert('地址无效');
+                await (await contract.connect(signer).setExcludeLPProvider(a, v)).wait();
+                loadPanel('lp');
             }
 
             async function loadInvite() {
-                const [gen, f, s, t, l, minInv] = await Promise.all([contract.generations(), contract.fristRate(),
-                    contract.secondRate(), contract.thirdRate(), contract.leftRate(), contract.minInvitorHoldAmount()
+                const [g, f, s, t, l, mi] = await Promise.all([contract.generations(), contract.fristRate(), contract
+                    .secondRate(), contract.thirdRate(), contract.leftRate(), contract.minInvitorHoldAmount()
                 ]);
-                const total = bnToNum(f) + bnToNum(s) + bnToNum(t) + bnToNum(l) * (bnToNum(gen) - 3);
-                document.getElementById('inviteData').innerHTML = `
-                <div class="data-item"><label>🔢 代数</label><span>${bnToNum(gen)}</span></div>
-                <div class="data-item"><label>1代</label><span>${bnToNum(f)}%</span></div>
-                <div class="data-item"><label>2代</label><span>${bnToNum(s)}%</span></div>
-                <div class="data-item"><label>3代</label><span>${bnToNum(t)}%</span></div>
-                <div class="data-item"><label>超出</label><span>${bnToNum(l)}%</span></div>
-                <div class="data-item"><label>✅ 总和</label><span style="color:${total===100?'var(--accent2)':'var(--danger)'}">${total}%</span></div>
-                <div class="data-item"><label>👤 上级持仓</label><span>${fromWei(minInv)}</span></div>`;
-                document.getElementById('inviteSetters').innerHTML = `
-                <input id="iGen" placeholder="代数"><input id="iF" placeholder="1代%"><input id="iS" placeholder="2代%"><input id="iT" placeholder="3代%"><input id="iL" placeholder="超出%">
-                <button id="setInviteBtn" class="success">更新</button>`;
-                document.getElementById('setInviteBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const v = ['iGen', 'iF', 'iS', 'iT', 'iL'].map(id => parseInt(document.getElementById(id).value));
-                    if (v.some(isNaN)) return alert('请输入整数');
-                    if (v[1] + v[2] + v[3] + v[4] * (v[0] - 3) !== 100) return alert('比例总和不等于100');
-                    try { await (await contract.connect(signer).changeInviteRate(v)).wait();
-                        alert('✅ 已更新');
-                        loadPanel('invite'); } catch (e) { alert('❌ ' + e.message); }
+                const sum = num(f) + num(s) + num(t) + num(l) * (num(g) - 3);
+                document.getElementById('inviteData').innerHTML = ['代数', num(g), '1代', `${num(f)}%`, '2代', `${num(s)}%`,
+                    '3代', `${num(t)}%`, '超出', `${num(l)}%`, '总和', `${sum}%`, '上级持仓', fmt(mi)
+                ].reduce((h, v, i, a) => i % 2 === 0 ? h +
+                    `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
+                document.getElementById('inviteSetters').innerHTML =
+                    '<input id="ig" placeholder="代数"><input id="if" placeholder="1代%"><input id="is" placeholder="2代%"><input id="it" placeholder="3代%"><input id="il" placeholder="超出%"><button id="setInvBtn" class="success">更新</button>';
+                document.getElementById('setInvBtn').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const v = ['ig', 'if', 'is', 'it', 'il'].map(id => parseInt(document.getElementById(id).value));
+                    if (v.some(isNaN)) return alert('整数');
+                    if (v[1] + v[2] + v[3] + v[4] * (v[0] - 3) !== 100) return alert('和不等于100');
+                    await (await contract.connect(signer).changeInviteRate(v)).wait();
+                    loadPanel('invite');
                 };
-                document.getElementById('inviteQuery').innerHTML = `
-                <input id="invQueryAddr" placeholder="地址">
-                <button id="queryInvBtn">邀请者</button>
-                <button id="queryBindersBtn">绑定数</button>
-                <button id="queryBinderListBtn">绑定列表</button>`;
-                document.getElementById('queryInvBtn').onclick = async () => {
-                    const addr = document.getElementById('invQueryAddr').value.trim();
-                    if (!addr) return;
-                    const inviter = await contract._inviter(addr);
-                    document.getElementById('inviteQueryResult').textContent = inviter ===
-                        '0x0000000000000000000000000000000000000000' ? '无邀请者' : '邀请者: ' + inviter;
-                };
-                document.getElementById('queryBindersBtn').onclick = async () => {
-                    const addr = document.getElementById('invQueryAddr').value.trim();
-                    if (!addr) return;
-                    const len = await contract.getBinderLength(addr);
-                    document.getElementById('inviteQueryResult').textContent = '绑定数: ' + bnToNum(len);
-                };
-                document.getElementById('queryBinderListBtn').onclick = async () => {
-                    const addr = document.getElementById('invQueryAddr').value.trim();
-                    if (!addr) return;
-                    const len = bnToNum(await contract.getBinderLength(addr));
-                    if (len === 0) return document.getElementById('inviteQueryResult').textContent = '无绑定者';
-                    const list = [];
-                    for (let i = 0; i < Math.min(len, 50); i++) list.push(await contract._binders(addr, i));
-                    document.getElementById('inviteQueryResult').textContent = '绑定者: ' + list.map(formatAddr).join(
-                        ', ');
-                };
+                document.getElementById('inviteQuery').innerHTML =
+                    '<input id="iqaddr" placeholder="地址"><button id="qinv">邀请者</button><button id="qbind">绑定数</button><button id="qlist">绑定列表</button>';
+                document.getElementById('qinv').onclick = async () => { const a = document.getElementById('iqaddr').value
+                        .trim(); if (!a) return; const inv = await contract._inviter(a);
+                    document.getElementById('inviteQueryResult').textContent = inv ===
+                        '0x0000000000000000000000000000000000000000' ? '无' : inv; };
+                document.getElementById('qbind').onclick = async () => { const a = document.getElementById('iqaddr').value
+                        .trim(); if (!a) return;
+                    document.getElementById('inviteQueryResult').textContent = '绑定数: ' + num(await contract
+                        .getBinderLength(a)); };
+                document.getElementById('qlist').onclick = async () => { const a = document.getElementById('iqaddr').value
+                        .trim(); if (!a) return; const len = num(await contract.getBinderLength(a)); if (!len) return document
+                        .getElementById('inviteQueryResult').textContent = '无'; const list = []; for (let i = 0; i < Math
+                        .min(len, 50); i++) list.push(addr(await contract._binders(a, i)));
+                    document.getElementById('inviteQueryResult').textContent = list.join(', '); };
             }
-
             async function loadAdvanced() {
-                const [bRate, bFreq, lastB, anti, off, kill, kb, start, adEn, adNum, minTx, limitAdd, chTax, numSell] =
-                    await Promise.all([
-                        contract.lpBurnRate(), contract.lpBurnFrequency(), contract.lastLpBurnTime(),
-                        contract.antiSYNC(), contract.enableOffTrade(), contract.enableKillBlock(), contract.kb(),
-                        contract.startTradeBlock(), contract.airdropEnable(), contract.airdropNumbs(),
-                        contract._minTransAmount(), contract.limitAddLiquidity(), contract.enableChangeTax(),
-                        contract.numTokensSellRate()
-                    ]);
-                document.getElementById('advancedData').innerHTML = `
-                <div class="data-item"><label>🔥 燃烧比例</label><span>${bnToNum(bRate)} 基点</span></div>
-                <div class="data-item"><label>⏰ 燃烧间隔</label><span>${bnToNum(bFreq)}秒</span></div>
-                <div class="data-item"><label>🕐 上次燃烧</label><span>${tsToDate(lastB)}</span></div>
-                <div class="data-item"><label>🛡️ 反MEV</label><span>${anti?'✅':'❌'}</span></div>
-                <div class="data-item"><label>🚫 开盘控制</label><span>${off?'✅':'❌'}</span></div>
-                <div class="data-item"><label>💀 杀区块</label><span>${kill?'✅ 数量:'+bnToNum(kb):'❌'}</span></div>
-                <div class="data-item"><label>🚀 启动块</label><span>${bnToNum(start)||'未启动'}</span></div>
-                <div class="data-item"><label>🎁 空投</label><span>${adEn?'✅ 每次'+bnToNum(adNum):'❌'}</span></div>
-                <div class="data-item"><label>📏 最小转账</label><span>${fromWei(minTx)}</span></div>
-                <div class="data-item"><label>📐 卖出触发%</label><span>${bnToNum(numSell)}%</span></div>
-                <div class="data-item"><label>🔒 限加流动</label><span>${limitAdd?'✅':'❌'}</span></div>
-                <div class="data-item"><label>🔒 税率可改</label><span>${chTax?'✅':'❌'}</span></div>`;
-                document.getElementById('advancedSetters').innerHTML = `
-                <input id="advBurnRate" placeholder="燃烧比例(基点)"><input id="advBurnFreq" placeholder="燃烧间隔(小时)">
-                <input id="advKb" placeholder="杀区块数"><input id="advAdNum" placeholder="空投地址数(≤5)">
-                <input id="advMinTx" placeholder="最小转账(代币个数)"><input id="advNumSell" placeholder="卖出触发比例(%)">
-                <button id="setAdvancedBtn" class="success">更新</button>`;
-                document.getElementById('setAdvancedBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
+                const [br, bf, lb, as, ot, ek, kb, st, ae, an, mt, la, ct, ns] = await Promise.all([contract.lpBurnRate(),
+                    contract.lpBurnFrequency(), contract.lastLpBurnTime(), contract.antiSYNC(), contract.enableOffTrade(),
+                    contract.enableKillBlock(), contract.kb(), contract.startTradeBlock(), contract.airdropEnable(),
+                    contract.airdropNumbs(), contract._minTransAmount(), contract.limitAddLiquidity(), contract
+                    .enableChangeTax(), contract.numTokensSellRate()
+                ]);
+                document.getElementById('advancedData').innerHTML = ['燃烧比例', `${num(br)}bp`, '燃烧间隔', `${num(bf)}秒`, '上次燃烧',
+                    date(lb), '反MEV', as ? '✅' : '❌', '开盘控制', ot ? '✅' : '❌', '杀区块', ek ? `✅${num(kb)}` : '❌', '启动块',
+                    num(st) || '未', '空投', ae ? `✅${num(an)}` : '❌', '最小转账', fmt(mt), '限加流动', la ? '✅' : '❌', '税率可改',
+                    ct ? '✅' : '❌', '卖出触发%', `${num(ns)}%`
+                ].reduce((h, v, i, a) => i % 2 === 0 ? h +
+                    `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
+                document.getElementById('advancedSetters').innerHTML =
+                    '<input id="abr" placeholder="燃烧比例(bp)"><input id="abf" placeholder="燃烧间隔(小时)"><input id="akb" placeholder="杀区块数"><input id="aad" placeholder="空投数"><input id="amt" placeholder="最小转账(代币)"><input id="ans" placeholder="卖出触发%"><button id="setAdvBtn" class="success">更新</button>';
+                document.getElementById('setAdvBtn').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
                     const c = contract.connect(signer);
-                    const br = document.getElementById('advBurnRate').value;
-                    const bf = document.getElementById('advBurnFreq').value;
-                    const kb = document.getElementById('advKb').value;
-                    const ad = document.getElementById('advAdNum').value;
-                    const minTx = document.getElementById('advMinTx').value;
-                    const ns = document.getElementById('advNumSell').value;
+                    const vals = {
+                        br: document.getElementById('abr').value,
+                        bf: document.getElementById('abf').value,
+                        kb: document.getElementById('akb').value,
+                        ad: document.getElementById('aad').value,
+                        mt: document.getElementById('amt').value,
+                        ns: document.getElementById('ans').value
+                    };
                     try {
-                        if (br) await (await c.setlpBurnRate(parseInt(br))).wait();
-                        if (bf) await (await c.setlpBurnFrequency(parseInt(bf))).wait();
-                        if (kb) await (await c.setkb(parseInt(kb))).wait();
-                        if (ad) await (await c.setAirdropNumbs(parseInt(ad))).wait();
-                        if (minTx) await (await c.setMinTransAmount(toWei(minTx))).wait();
-                        if (ns) await (await c.setNumTokensSellRate(parseInt(ns))).wait();
-                        alert('✅ 已更新');
+                        if (vals.br) await (await c.setlpBurnRate(parseInt(vals.br))).wait();
+                        if (vals.bf) await (await c.setlpBurnFrequency(parseInt(vals.bf))).wait();
+                        if (vals.kb) await (await c.setkb(parseInt(vals.kb))).wait();
+                        if (vals.ad) await (await c.setAirdropNumbs(parseInt(vals.ad))).wait();
+                        if (vals.mt) await (await c.setMinTransAmount(toWei(vals.mt))).wait();
+                        if (vals.ns) await (await c.setNumTokensSellRate(parseInt(vals.ns))).wait();
                         loadPanel('advanced');
-                    } catch (e) { alert('❌ ' + e.message); }
+                    } catch (e) { alert(e.message); }
                 };
                 document.getElementById('advancedToggles').innerHTML = `
-                <button id="toggleAirDropOnBtn">开空投</button><button id="toggleAirDropOffBtn">关空投</button>
-                <button id="toggleAntiSyncOnBtn">开反MEV</button><button id="toggleAntiSyncOffBtn">关反MEV</button>
-                <button id="toggleLimitAddOnBtn" class="danger">禁加流动</button><button id="toggleLimitAddOffBtn" class="success">允加流动</button>
-                <button id="disableTaxChangeBtn" class="danger">永久锁税</button>`;
-                document.getElementById('toggleAirDropOnBtn').onclick = () => toggleBool('setAirDropEnable', true);
-                document.getElementById('toggleAirDropOffBtn').onclick = () => toggleBool('setAirDropEnable', false);
-                document.getElementById('toggleAntiSyncOnBtn').onclick = () => toggleBool('setAntiSYNCEnable', true);
-                document.getElementById('toggleAntiSyncOffBtn').onclick = () => toggleBool('setAntiSYNCEnable', false);
-                document.getElementById('toggleLimitAddOnBtn').onclick = () => toggleBool('setLimitAddLiquidity', true);
-                document.getElementById('toggleLimitAddOffBtn').onclick = () => toggleBool('setLimitAddLiquidity',
-                false);
-                document.getElementById('disableTaxChangeBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    if (!confirm('永久锁定税率？')) return;
+                <button id="adOn">开空投</button><button id="adOff">关空投</button>
+                <button id="asOn">开反MEV</button><button id="asOff">关反MEV</button>
+                <button id="laOn" class="danger">禁加流动</button><button id="laOff" class="success">允加流动</button>
+                <button id="lockTax" class="danger">永久锁税</button>`;
+                document.getElementById('adOn').onclick = () => toggleBool('setAirDropEnable', true);
+                document.getElementById('adOff').onclick = () => toggleBool('setAirDropEnable', false);
+                document.getElementById('asOn').onclick = () => toggleBool('setAntiSYNCEnable', true);
+                document.getElementById('asOff').onclick = () => toggleBool('setAntiSYNCEnable', false);
+                document.getElementById('laOn').onclick = () => toggleBool('setLimitAddLiquidity', true);
+                document.getElementById('laOff').onclick = () => toggleBool('setLimitAddLiquidity', false);
+                document.getElementById('lockTax').onclick = async () => { if (!signer) return alert('连接钱包'); if (!confirm(
+                        '永久锁税？')) return;
                     await (await contract.connect(signer).disableChangeTax()).wait();
-                    alert('已锁定');
-                    loadPanel('advanced');
-                };
+                    loadPanel('advanced'); };
             }
-            async function toggleBool(method, value) {
-                if (!signer) return alert('请连接钱包');
-                await (await contract.connect(signer)[method](value)).wait();
-                loadPanel('advanced');
-            }
+            async function toggleBool(m, v) { if (!signer) return alert('连接钱包');
+                await (await contract.connect(signer)[m](v)).wait();
+                loadPanel('advanced'); }
 
             async function loadAdmin() {
-                const [paused, pEn, mEn, wEn, maxW, fund, own] = await Promise.all([
-                    contract.pause(), contract.enablePause(), contract.enableMint(), contract.enableWalletLimit(),
-                    contract.maxWalletAmount(), contract.fundAddress(), contract.owner()
+                const [ps, ep, em, ew, mw, f, o] = await Promise.all([contract.pause(), contract.enablePause(), contract
+                    .enableMint(), contract.enableWalletLimit(), contract.maxWalletAmount(), contract.fundAddress(),
+                    contract.owner()
                 ]);
-                document.getElementById('adminData').innerHTML = `
-                <div class="data-item"><label>⏯️ 暂停</label><span>${paused?'⏸️':'▶️'}</span></div>
-                <div class="data-item"><label>可暂停</label><span>${pEn?'✅':'❌'}</span></div>
-                <div class="data-item"><label>可增发</label><span>${mEn?'✅':'❌'}</span></div>
-                <div class="data-item"><label>钱包限制</label><span>${wEn?'✅':'❌'}</span></div>
-                <div class="data-item"><label>最大持仓</label><span>${fromWei(maxW)}</span></div>
-                <div class="data-item"><label>💰 基金</label><span>${fund}</span></div>
-                <div class="data-item"><label>👑 Owner</label><span>${own}</span></div>`;
+                document.getElementById('adminData').innerHTML = ['暂停', ps ? '⏸️' : '▶️', '可暂停', ep ? '✅' : '❌', '可增发', em ?
+                    '✅' : '❌', '钱包限制', ew ? '✅' : '❌', '最大持仓', fmt(mw), '基金', f, 'Owner', o
+                ].reduce((h, v, i, a) => i % 2 === 0 ? h +
+                    `<div class="data-item"><label>${v}</label><span>${a[i+1]}</span></div>` : h, '');
                 document.getElementById('adminActions').innerHTML = `
                 <button id="launchBtn" class="success">🚀 启动</button>
                 <button id="pauseBtn" class="danger">⏸️ 暂停</button>
                 <button id="resumeBtn" class="success">▶️ 恢复</button>
-                <button id="disableWLBtn">取消限额</button>
-                <button id="renounceBtn" class="danger">⚠️ 放弃所有权</button>`;
-                document.getElementById('launchBtn').onclick = () => adminExec('launch');
-                document.getElementById('pauseBtn').onclick = () => adminExec('PauseTransaction');
-                document.getElementById('resumeBtn').onclick = () => adminExec('recoverTransaction');
-                document.getElementById('disableWLBtn').onclick = () => adminExec('disableWalletLimit');
-                document.getElementById('renounceBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    if (!confirm('放弃所有权？')) return;
+                <button id="disWL">取消限额</button>
+                <button id="renounce" class="danger">放弃所有权</button>`;
+                document.getElementById('launchBtn').onclick = () => adminCall('launch');
+                document.getElementById('pauseBtn').onclick = () => adminCall('PauseTransaction');
+                document.getElementById('resumeBtn').onclick = () => adminCall('recoverTransaction');
+                document.getElementById('disWL').onclick = () => adminCall('disableWalletLimit');
+                document.getElementById('renounce').onclick = async () => { if (!signer) return alert('连接钱包'); if (!confirm(
+                        '放弃？')) return;
                     await (await contract.connect(signer).renounceOwnership()).wait();
-                    loadPanel('admin');
-                };
+                    loadPanel('admin'); };
                 document.getElementById('adminLists').innerHTML = `
                 <input id="wlAddr" placeholder="地址">
-                <button id="addWhiteBtn">加白</button><button id="removeWhiteBtn">移白</button>
-                <button id="addBlackBtn" class="danger">加黑</button><button id="removeBlackBtn">移黑</button>
-                <button id="addPairBtn">加交易对</button><button id="removePairBtn">移除</button>`;
-                document.getElementById('addWhiteBtn').onclick = () => listExec('setWhiteList', true);
-                document.getElementById('removeWhiteBtn').onclick = () => listExec('setWhiteList', false);
-                document.getElementById('addBlackBtn').onclick = () => listExec('multi_bclist', true);
-                document.getElementById('removeBlackBtn').onclick = () => listExec('multi_bclist', false);
-                document.getElementById('addPairBtn').onclick = () => listExec('setSwapPairList', true);
-                document.getElementById('removePairBtn').onclick = () => listExec('setSwapPairList', false);
+                <button id="addW">加白</button><button id="remW">移白</button>
+                <button id="addB" class="danger">加黑</button><button id="remB">移黑</button>
+                <button id="addP">加交易对</button><button id="remP">移除</button>`;
+                document.getElementById('addW').onclick = () => listCall('setWhiteList', true);
+                document.getElementById('remW').onclick = () => listCall('setWhiteList', false);
+                document.getElementById('addB').onclick = () => listCall('multi_bclist', true);
+                document.getElementById('remB').onclick = () => listCall('multi_bclist', false);
+                document.getElementById('addP').onclick = () => listCall('setSwapPairList', true);
+                document.getElementById('remP').onclick = () => listCall('setSwapPairList', false);
                 document.getElementById('adminExtra').innerHTML = `
-                <input id="newLimit" placeholder="新限额(代币个数)"><button id="setLimitBtn">设限额</button>
-                <input id="mintAmt" placeholder="增发量(代币个数)"><input id="mintAddr" placeholder="接收地址"><button id="mintBtn" class="success">增发</button>
-                <input id="newFundAddr" placeholder="新基金地址"><button id="setFundBtn">设基金</button>
-                <input id="claimToken" placeholder="代币地址(0x0=BNB)"><input id="claimAmt" placeholder="数量"><button id="claimBtn" class="danger">提取</button>
-                <input id="newOwnerAddr" placeholder="新Owner地址"><button id="transferOwnerBtn" class="purple-btn">转移所有权</button>`;
-                document.getElementById('setLimitBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    await (await contract.connect(signer).changeWalletLimit(toWei(document.getElementById(
-                    'newLimit').value))).wait();
-                    alert('已更新');
+                <input id="nLimit" placeholder="新限额(代币)"><button id="setLimit">设限额</button>
+                <input id="mAmt" placeholder="增发量"><input id="mAddr" placeholder="接收地址"><button id="mint" class="success">增发</button>
+                <input id="nFund" placeholder="新基金"><button id="setFund">设基金</button>
+                <input id="cToken" placeholder="代币(0=BNB)"><input id="cAmt" placeholder="数量"><button id="claim" class="danger">提取</button>
+                <input id="nOwner" placeholder="新Owner"><button id="transOwner">转移所有权</button>`;
+                document.getElementById('setLimit').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    await (await contract.connect(signer).changeWalletLimit(toWei(document.getElementById('nLimit')
+                        .value))).wait();
                     loadPanel('admin');
                 };
-                document.getElementById('mintBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const addr = document.getElementById('mintAddr').value.trim();
-                    const amt = toWei(document.getElementById('mintAmt').value);
-                    if (!addr) return;
-                    await (await contract.connect(signer).mintTokens(addr, amt)).wait();
-                    alert('增发成功');
+                document.getElementById('mint').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const a = document.getElementById('mAddr').value.trim(),
+                        amt = toWei(document.getElementById('mAmt').value);
+                    if (!a) return;
+                    await (await contract.connect(signer).mintTokens(a, amt)).wait();
+                    alert('已增发');
                 };
-                document.getElementById('setFundBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const addr = document.getElementById('newFundAddr').value.trim();
-                    if (!addr) return;
-                    await (await contract.connect(signer).setFundAddress(addr)).wait();
-                    alert('已更新');
+                document.getElementById('setFund').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const a = document.getElementById('nFund').value.trim(); if (!a) return;
+                    await (await contract.connect(signer).setFundAddress(a)).wait();
                 };
-                document.getElementById('claimBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const token = document.getElementById('claimToken').value.trim();
-                    const amtStr = document.getElementById('claimAmt').value;
+                document.getElementById('claim').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const t = document.getElementById('cToken').value.trim(),
+                        amt = document.getElementById('cAmt').value;
                     try {
-                        if (token === '0' || token === '0x0000000000000000000000000000000000000000' || token === '') {
-                            await (await contract.connect(signer).setClaims(
-                                '0x0000000000000000000000000000000000000000', ethers.utils.parseEther(amtStr || '0')))
+                        if (!t || t === '0' || t === '0x0000000000000000000000000000000000000000') await (await contract
+                            .connect(signer).setClaims('0x0000000000000000000000000000000000000000', ethers.utils
+                            .parseEther(amt || '0'))).wait();
+                        else {
+                            if (!ethers.utils.isAddress(t)) return alert('地址无效');
+                            let d = 18;
+                            try { d = num(await new ethers.Contract(t, ['function decimals() view returns(uint256)'],
+                                    provider).decimals()); } catch {}
+                            await (await contract.connect(signer).setClaims(t, ethers.utils.parseUnits(amt || '0', d)))
                                 .wait();
-                        } else {
-                            if (!ethers.utils.isAddress(token)) return alert('代币地址无效');
-                            let dec = 18;
-                            try { dec = bnToNum(await new ethers.Contract(token, [
-                                    'function decimals() view returns (uint256)'
-                                ], provider).decimals()); } catch {}
-                            await (await contract.connect(signer).setClaims(token, ethers.utils.parseUnits(amtStr ||
-                                '0', dec))).wait();
                         }
-                        alert('提取成功');
-                    } catch (e) { alert('❌ ' + e.message); }
+                        alert('已提取');
+                    } catch (e) { alert(e.message); }
                 };
-                document.getElementById('transferOwnerBtn').onclick = async () => {
-                    if (!signer) return alert('请连接钱包');
-                    const addr = document.getElementById('newOwnerAddr').value.trim();
-                    if (!ethers.utils.isAddress(addr)) return alert('地址无效');
+                document.getElementById('transOwner').onclick = async () => {
+                    if (!signer) return alert('连接钱包');
+                    const a = document.getElementById('nOwner').value.trim();
+                    if (!ethers.utils.isAddress(a)) return alert('无效地址');
                     if (!confirm('转移所有权？')) return;
-                    await (await contract.connect(signer).transferOwnership(addr)).wait();
-                    alert('已转移');
+                    await (await contract.connect(signer).transferOwnership(a)).wait();
                     loadPanel('admin');
                 };
             }
-            async function adminExec(method) {
-                if (!signer) return alert('请连接钱包');
-                await (await contract.connect(signer)[method]()).wait();
-                alert('操作成功');
-                loadPanel('admin');
-            }
-            async function listExec(method, value) {
-                if (!signer) return alert('请连接钱包');
-                const addr = document.getElementById('wlAddr').value.trim();
-                if (!ethers.utils.isAddress(addr)) return alert('地址无效');
-                await (await contract.connect(signer)[method]([addr], value)).wait();
-                alert('操作成功');
-            }
+            async function adminCall(m) { if (!signer) return alert('连接钱包');
+                await (await contract.connect(signer)[m]()).wait();
+                loadPanel('admin'); }
 
-            const saved = localStorage.getItem('crc_addr_v7_4');
+            async function listCall(m, v) { if (!signer) return alert('连接钱包'); const a = document.getElementById('wlAddr')
+                    .value.trim(); if (!ethers.utils.isAddress(a)) return alert('无效地址');
+                await (await contract.connect(signer)[m]([a], v)).wait(); }
+
+            const saved = localStorage.getItem('crc8');
             if (saved) document.getElementById('contractAddress').value = saved;
         })();
     </script>
