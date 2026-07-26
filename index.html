@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRC 稳定控制面板 v5.0 - PandaTokenV4</title>
+    <title>CRC 稳定控制面板 v5.1 - PandaTokenV4</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js">
     </script>
     <style>
@@ -260,6 +260,18 @@
             background: #7f1d1d;
             color: #fca5a5;
         }
+        .event-log {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+        .event-log strong {
+            color: var(--accent2);
+        }
         @media (max-width: 768px) {
             .header {
                 flex-direction: column;
@@ -285,7 +297,7 @@
         <div class="header">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <h1>🛡️ CRC 稳定控制面板</h1>
-                <span class="version">v5.0</span>
+                <span class="version">v5.1</span>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <button id="connectWallet" class="wallet-btn">🔌 连接钱包</button>
@@ -333,6 +345,12 @@
         <div id="panel-stabilize" class="card hidden">
             <h2>⚖️ 稳定机制 <span id="status-stabilize" class="status-text"></span></h2>
             <div class="data-grid" id="stabilizeData"></div>
+            <hr>
+            <h3>🔍 稳定操作地址</h3>
+            <div class="data-grid" id="stabilizeAddresses"></div>
+            <hr>
+            <h3>📋 最近执行记录 <button id="fetchStableEvents" class="refresh-btn" style="margin-left:10px;">🔄 查询最近事件</button></h3>
+            <div id="stableEventsResult" style="margin-top:8px;"></div>
             <hr>
             <h3>✏️ 设置稳定参数</h3>
             <div class="input-group" id="stabilizeSetters"></div>
@@ -391,11 +409,10 @@
         let contract = null;
         let currentAddr = "";
         let currentPanel = "token";
-        let tokenDecimals = 18; // 动态获取
+        let tokenDecimals = 18;
 
         // 完整ABI —— 与PandaTokenV4合约一一对应
         const abi = [
-            // IERC20 基础
             "function name() view returns (string)",
             "function symbol() view returns (string)",
             "function decimals() view returns (uint256)",
@@ -407,12 +424,10 @@
             "function _mainPair() view returns (address)",
             "function fundAddress() view returns (address)",
             "function deadAddress() view returns (address)",
-            // 白名单/黑名单
             "function _allWhiteList(address) view returns (bool)",
             "function _rewardList(address) view returns (bool)",
             "function isReward(address) view returns (uint256)",
             "function enableRewardList() view returns (bool)",
-            // 开关状态
             "function enableMint() view returns (bool)",
             "function enablePause() view returns (bool)",
             "function enableWalletLimit() view returns (bool)",
@@ -424,7 +439,6 @@
             "function antiSYNC() view returns (bool)",
             "function airdropEnable() view returns (bool)",
             "function limitAddLiquidity() view returns (bool)",
-            // 税率
             "function _buyFundFee() view returns (uint256)",
             "function _buyLPFee() view returns (uint256)",
             "function buy_burnFee() view returns (uint256)",
@@ -434,7 +448,6 @@
             "function addLiquidityFee() view returns (uint256)",
             "function removeLiquidityFee() view returns (uint256)",
             "function numTokensSellRate() view returns (uint256)",
-            // 高级参数
             "function kb() view returns (uint256)",
             "function startTradeBlock() view returns (uint256)",
             "function airdropNumbs() view returns (uint256)",
@@ -443,13 +456,11 @@
             "function lpBurnRate() view returns (uint256)",
             "function lpBurnFrequency() view returns (uint256)",
             "function lastLpBurnTime() view returns (uint256)",
-            // LP挖矿
             "function mineRate() view returns (uint256)",
             "function LPRewardCondition() view returns (uint256)",
             "function minLPHoldAmount() view returns (uint256)",
             "function minInvitorHoldAmount() view returns (uint256)",
             "function _LPRewardDistributor() view returns (address)",
-            // 邀请
             "function generations() view returns (uint256)",
             "function fristRate() view returns (uint256)",
             "function secondRate() view returns (uint256)",
@@ -457,7 +468,6 @@
             "function leftRate() view returns (uint256)",
             "function _inviter(address) view returns (address)",
             "function getBinderLength(address) view returns (uint256)",
-            // 稳定机制
             "function totalBuyAmount() view returns (uint256)",
             "function totalSellAmount() view returns (uint256)",
             "function buyTriggerThreshold() view returns (uint256)",
@@ -469,7 +479,6 @@
             "function cooldownRemaining() view returns (uint256)",
             "function pendingSellExecute() view returns (bool)",
             "function pendingBuyExecute() view returns (bool)",
-            // 写入函数
             "function completeCustoms(uint256[]) external",
             "function setAutoTriggerParams(uint256,uint256,uint256,uint8,uint256) external",
             "function setLPRewardCondition(uint256) external",
@@ -501,10 +510,11 @@
             "function setAddLiquidityFee(uint256) external",
             "function setRemoveLiquidityFee(uint256) external",
             "function setExcludeLPProvider(address,bool) external",
-            "function setClaims(address,uint256) external"
+            "function setClaims(address,uint256) external",
+            "event StabilizeSellExecuted(uint256 indexed tokensSold, uint256 indexed usdtReceived)",
+            "event StabilizeBuyExecuted(uint256 indexed usdtSpent, uint256 indexed tokensBought)"
         ];
 
-        // 工具函数
         function toWei(val, dec) {
             dec = dec || tokenDecimals;
             try { return ethers.utils.parseUnits(String(val), dec); } catch (e) { return ethers.BigNumber.from(
@@ -524,7 +534,6 @@
             try { return Number(ethers.utils.formatUnits(bn, 0)); } catch (e) { return Number(bn); }
         }
 
-        // 状态提示
         function setStatus(panel, msg, isErr) {
             const el = document.getElementById('status-' + panel);
             if (!el) return;
@@ -564,7 +573,6 @@
             }
         };
 
-        // 加载合约
         document.getElementById('loadContract').onclick = loadContract;
         document.getElementById('saveAddress').onclick = () => {
             const addr = document.getElementById('contractAddress').value.trim();
@@ -587,7 +595,6 @@
                 } catch (e) {}
             }
             contract = new ethers.Contract(addr, abi, signer || provider);
-            // 获取代币精度
             try {
                 const dec = await contract.decimals();
                 tokenDecimals = bnToNum(dec);
@@ -600,7 +607,6 @@
             loadPanel(currentPanel);
         }
 
-        // 面板加载入口
         async function loadPanel(panel) {
             if (!contract) {
                 if (currentAddr && ethers.utils.isAddress(currentAddr)) {
@@ -694,7 +700,6 @@
             <div class="data-item"><label>买入税率和</label><span>${bfn+blpn+bbn} / 2500</span></div>
             <div class="data-item"><label>卖出税率和</label><span>${sfn+slpn+sbn} / 2500</span></div>
           `;
-            // 6税率设置
             document.getElementById('taxSetters').innerHTML = `
             <input id="tx1" placeholder="买入基金(基点)" type="number"><input id="tx2" placeholder="买入LP(基点)" type="number">
             <input id="tx3" placeholder="买入销毁(基点)" type="number"><input id="tx4" placeholder="卖出基金(基点)" type="number">
@@ -702,7 +707,6 @@
             <button onclick="setTaxes()">✏️ 更新交易税率</button>
             <span class="tooltip" data-tip="需Owner权限。买入三税和<2500，卖出三税和<2500。需enableChangeTax=true">ⓘ</span>
           `;
-            // 流动性税率设置
             document.getElementById('liqTaxSetters').innerHTML = `
             <input id="liqAddFee" placeholder="添加流动性税(基点,≤2500)" type="number">
             <input id="liqRemFee" placeholder="移除流动性税(基点,≤5000)" type="number">
@@ -749,15 +753,18 @@
 
         // -------------------- 稳定机制 --------------------
         async function loadStabilize() {
-            const [buyAmt, sellAmt, buyTh, sellTh, perc, maxD, daily, cd, cool, en, pendingSell, pendingBuy] =
-                await Promise.all([
-                    contract.totalBuyAmount(), contract.totalSellAmount(), contract.buyTriggerThreshold(),
-                    contract.sellTriggerThreshold(), contract.triggerActionPercent(),
-                    contract.maxDailyTriggers(), contract.dailyTriggerCount(), contract.triggerCooldown(),
-                    contract.cooldownRemaining(), contract.enableAutoTrigger(),
-                    contract.pendingSellExecute().catch(() => false),
-                    contract.pendingBuyExecute().catch(() => false)
-                ]);
+            const [buyAmt, sellAmt, buyTh, sellTh, perc, maxD, daily, cd, cool, en, pendingSell, pendingBuy,
+                lpDistributor, contractAddress
+            ] = await Promise.all([
+                contract.totalBuyAmount(), contract.totalSellAmount(), contract.buyTriggerThreshold(),
+                contract.sellTriggerThreshold(), contract.triggerActionPercent(),
+                contract.maxDailyTriggers(), contract.dailyTriggerCount(), contract.triggerCooldown(),
+                contract.cooldownRemaining(), contract.enableAutoTrigger(),
+                contract.pendingSellExecute().catch(() => false),
+                contract.pendingBuyExecute().catch(() => false),
+                contract._LPRewardDistributor(),
+                contract.address
+            ]);
             const percNum = bnToNum(perc);
             document.getElementById('stabilizeData').innerHTML = `
             <div class="data-item"><label>累计买入</label><span>${fromWei(buyAmt)} 代币</span></div>
@@ -770,8 +777,13 @@
             <div class="data-item"><label>冷却区块数</label><span>${bnToNum(cd)}</span></div>
             <div class="data-item"><label>剩余冷却</label><span>${bnToNum(cool)}</span></div>
             <div class="data-item"><label>自动触发</label><span>${en ? '<span class="badge badge-on">✅ 开启</span>' : '<span class="badge badge-off">❌ 关闭</span>'}</span></div>
-            <div class="data-item"><label>待卖出执行</label><span>${pendingSell ? '⏳ 是' : '✅ 否'}</span></div>
-            <div class="data-item"><label>待回购执行</label><span>${pendingBuy ? '⏳ 是' : '✅ 否'}</span></div>
+            <div class="data-item"><label>待卖出执行</label><span>${pendingSell ? '<span class="badge badge-off">⏳ 是</span>' : '<span class="badge badge-on">✅ 否</span>'}</span></div>
+            <div class="data-item"><label>待回购执行</label><span>${pendingBuy ? '<span class="badge badge-off">⏳ 是</span>' : '<span class="badge badge-on">✅ 否</span>'}</span></div>
+          `;
+            // 地址展示
+            document.getElementById('stabilizeAddresses').innerHTML = `
+            <div class="data-item"><label>卖出操作合约地址</label><span style="font-size:0.82rem;">${contractAddress}</span></div>
+            <div class="data-item"><label>回购接收地址(LPRewardDistributor)</label><span style="font-size:0.82rem;">${lpDistributor}</span></div>
           `;
             document.getElementById('stabilizeSetters').innerHTML = `
             <input id="sBuyTh" placeholder="买入阈值(代币数)" type="number" step="any">
@@ -783,6 +795,65 @@
             <button onclick="toggleAutoStabilize()" class="purple-btn">⚙️ 切换自动稳定</button>
             <button onclick="forceResetStabilize()" class="danger">🔄 强制重置累计</button>
           `;
+            // 绑定事件查询按钮
+            document.getElementById('fetchStableEvents').onclick = fetchStableEvents;
+        }
+
+        // 查询稳定事件
+        async function fetchStableEvents() {
+            if (!contract) return alert('请先加载合约');
+            const resultDiv = document.getElementById('stableEventsResult');
+            resultDiv.innerHTML = '⏳ 查询最近事件中...';
+            try {
+                const sellTopic = ethers.utils.id('StabilizeSellExecuted(uint256,uint256)');
+                const buyTopic = ethers.utils.id('StabilizeBuyExecuted(uint256,uint256)');
+                const currentBlock = await provider.getBlockNumber();
+                const fromBlock = currentBlock - 50000; // 查询最近5万区块
+                const filterSell = {
+                    address: contract.address,
+                    topics: [sellTopic],
+                    fromBlock: fromBlock,
+                    toBlock: currentBlock
+                };
+                const filterBuy = {
+                    address: contract.address,
+                    topics: [buyTopic],
+                    fromBlock: fromBlock,
+                    toBlock: currentBlock
+                };
+                const [sellLogs, buyLogs] = await Promise.all([
+                    provider.getLogs(filterSell),
+                    provider.getLogs(filterBuy)
+                ]);
+
+                let html = '';
+                // 处理卖出事件
+                if (sellLogs.length > 0) {
+                    const lastSell = sellLogs[sellLogs.length - 1];
+                    const parsed = contract.interface.parseLog(lastSell);
+                    const tokensSold = parsed.args.tokensSold;
+                    const usdtReceived = parsed.args.usdtReceived;
+                    html +=
+                        `<div class="event-log"><strong>📤 最近卖出执行</strong><br>交易哈希: <a href="https://bscscan.com/tx/${lastSell.transactionHash}" target="_blank" style="color:#3b82f6;">${lastSell.transactionHash.slice(0,20)}...</a><br>卖出代币数量: ${fromWei(tokensSold)}<br>获得USDT/ETH: ${fromWei(usdtReceived, 18)}<br>区块: ${lastSell.blockNumber}</div>`;
+                } else {
+                    html += '<div class="event-log">📤 未找到最近的卖出执行事件</div>';
+                }
+                // 处理回购事件
+                if (buyLogs.length > 0) {
+                    const lastBuy = buyLogs[buyLogs.length - 1];
+                    const parsed = contract.interface.parseLog(lastBuy);
+                    const usdtSpent = parsed.args.usdtSpent;
+                    const tokensBought = parsed.args.tokensBought;
+                    html +=
+                        `<div class="event-log" style="margin-top:8px;"><strong>📥 最近回购执行</strong><br>交易哈希: <a href="https://bscscan.com/tx/${lastBuy.transactionHash}" target="_blank" style="color:#3b82f6;">${lastBuy.transactionHash.slice(0,20)}...</a><br>花费USDT/ETH: ${fromWei(usdtSpent, 18)}<br>回购代币数量: ${fromWei(tokensBought)}<br>区块: ${lastBuy.blockNumber}</div>`;
+                } else {
+                    html += '<div class="event-log" style="margin-top:8px;">📥 未找到最近的回购执行事件</div>';
+                }
+                resultDiv.innerHTML = html;
+            } catch (e) {
+                resultDiv.innerHTML = '❌ 查询失败: ' + e.message;
+                console.error(e);
+            }
         }
 
         async function setStabilize() {
@@ -1146,7 +1217,6 @@
                 document.getElementById('contractAddress').value = saved;
                 try { await loadContract(); } catch (e) { console.log('Auto-load skipped:', e.message); }
             }
-            // 自动连接钱包
             if (window.ethereum) {
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
@@ -1162,7 +1232,6 @@
                     }
                 } catch (e) {}
             }
-            // 监听账户切换
             if (window.ethereum) {
                 window.ethereum.on('accountsChanged', (accounts) => {
                     if (accounts.length > 0) {
