@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CRC 代币控制面板 V2.1</title>
+  <title>CRC 代币控制面板 V2.2</title>
   <style>
     :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #c9d1d9; --accent: #58a6ff; --danger: #f85149; --success: #3fb950; --warn: #d2991d; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,7 +46,7 @@
   <header>
     <div>
       <div class="title">🐼 CRC 代币控制面板</div>
-      <div class="version">V2.1 自动转换 · 无多余零</div>
+      <div class="version">V2.2 完整无删减</div>
     </div>
     <div>
       <button id="connectBtn">🔌 连接钱包</button>
@@ -81,8 +81,118 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
-// 完整 ABI（同前，略）
-const ABI = [ /* ... 与上文相同，请保留完整 ... */ ];
+/* ========== 完整 ABI（从合约复制，无遗漏） ========== */
+const contractABI = [
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint256)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+  "function allowance(address,address) view returns (uint256)",
+  "function approve(address,uint256) returns (bool)",
+  "function transfer(address,uint256) returns (bool)",
+  "function transferFrom(address,address,uint256) returns (bool)",
+  "function owner() view returns (address)",
+  "function renounceOwnership()",
+  "function transferOwnership(address)",
+  "function fundAddress() view returns (address)",
+  "function kb() view returns (uint256)",
+  "function mineRate() view returns (uint256)",
+  "function antiSYNC() view returns (bool)",
+  "function _buyFundFee() view returns (uint256)",
+  "function _buyLPFee() view returns (uint256)",
+  "function buy_burnFee() view returns (uint256)",
+  "function _sellFundFee() view returns (uint256)",
+  "function _sellLPFee() view returns (uint256)",
+  "function sell_burnFee() view returns (uint256)",
+  "function removeLiquidityFee() view returns (uint256)",
+  "function fristRate() view returns (uint256)",
+  "function secondRate() view returns (uint256)",
+  "function thirdRate() view returns (uint256)",
+  "function leftRate() view returns (uint256)",
+  "function generations() view returns (uint256)",
+  "function _minTransAmount() view returns (uint256)",
+  "function airdropNumbs() view returns (uint256)",
+  "function currencyIsEth() view returns (bool)",
+  "function startTradeBlock() view returns (uint256)",
+  "function enableOffTrade() view returns (bool)",
+  "function enableKillBlock() view returns (bool)",
+  "function enableRewardList() view returns (bool)",
+  "function enableChangeTax() view returns (bool)",
+  "function airdropEnable() view returns (bool)",
+  "function enablePause() view returns (bool)",
+  "function pause() view returns (bool)",
+  "function enableMint() view returns (bool)",
+  "function enableWalletLimit() view returns (bool)",
+  "function maxWalletAmount() view returns (uint256)",
+  "function lastLpBurnTime() view returns (uint256)",
+  "function lpBurnRate() view returns (uint256)",
+  "function lpBurnFrequency() view returns (uint256)",
+  "function presaleEnabled() view returns (bool)",
+  "function price() view returns (uint256)",
+  "function amountPerUnits() view returns (uint256)",
+  "function mintLimit() view returns (uint256)",
+  "function minted() view returns (uint256)",
+  "function _mainPair() view returns (address)",
+  "function currency() view returns (address)",
+  "function _swapRouter() view returns (address)",
+  "function _tokenDistributor() view returns (address)",
+  "function _LPRewardDistributor() view returns (address)",
+  "function LPRewardCondition() view returns (uint256)",
+  "function minLPHoldAmount() view returns (uint256)",
+  "function minInvitorHoldAmount() view returns (uint256)",
+  "function _mineLPRewardTimeDebt() view returns (uint256)",
+  "function _progressMineLPBlockDebt() view returns (uint256)",
+  "function _currentMineLPIndex() view returns (uint256)",
+  "function _progressMineLPBlock() view returns (uint256)",
+  "function getLPProviderLength() view returns (uint256)",
+  "function lpProviders(uint256) view returns (address)",
+  "function lpProviderIndex(address) view returns (uint256)",
+  "function excludeLpProvider(address) view returns (bool)",
+  "function _lastMineLPRewardTimes(address) view returns (uint256)",
+  "function _userLPAmount(address) view returns (uint256)",
+  "function _lastMaybeAddLPAddress() view returns (address)",
+  "function _lastMaybeAddLPAmount() view returns (uint256)",
+  "function _inviter(address) view returns (address)",
+  "function getBinderLength(address) view returns (uint256)",
+  "function _binders(address,uint256) view returns (address)",
+  "function _feeWhiteList(address) view returns (bool)",
+  "function _rewardList(address) view returns (bool)",
+  "function _swapPairList(address) view returns (bool)",
+  "function setAntiSYNCEnable(bool)",
+  "function setkb(uint256)",
+  "function setAirDropEnable(bool)",
+  "function setFundAddress(address)",
+  "function launch()",
+  "function setFeeWhiteList(address[],bool)",
+  "function completeCustoms(uint256[])",
+  "function changeInviteRate(uint256[])",
+  "function multi_bclist(address[],bool)",
+  "function setMinTransAmount(uint256)",
+  "function disableChangeTax()",
+  "function setSwapPairList(address,bool)",
+  "function claimBalance()",
+  "function claimToken(address,uint256,address)",
+  "function claimContractToken(address,address,uint256)",
+  "function setlpBurnRate(uint256)",
+  "function setlpBurnFrequency(uint256)",
+  "function setPresaleEnabled(bool)",
+  "function setMintLimit(uint256)",
+  "function setPrice(uint256)",
+  "function setAmountPerUnits(uint256)",
+  "function setExcludeLPProvider(address,bool)",
+  "function setLPRewardCondition(uint256)",
+  "function setMinLPHoldAmount(uint256)",
+  "function setMinInvitorHoldAmount(uint256)",
+  "function setPause(bool)",
+  "function setEnablePause(bool)",
+  "function mintToken(address,uint256)",
+  "function setEnableMint(bool)",
+  "function disableMint()",
+  "function setMaxWalletAmount(uint256)",
+  "function setEnableWalletLimit(bool)",
+  "function disableWalletLimit()"
+];
 
 let provider, signer, contract, userAddress, ownerAddress, decimals = 18;
 const contractInput = document.getElementById('contractAddress');
@@ -91,17 +201,19 @@ const connectBtn = document.getElementById('connectBtn');
 const walletSpan = document.getElementById('walletAddress');
 const errorDiv = document.getElementById('globalError');
 
+// 工具函数：格式化为人类可读数字
 const fmt = (val, dec = decimals) => {
   try { return ethers.utils.formatUnits(val, dec); } catch { return val.toString(); }
 };
 const fmt18 = (val) => ethers.utils.formatUnits(val, 18);
 const toDate = (ts) => ts.toNumber() === 0 ? '从未' : new Date(ts.toNumber() * 1000).toLocaleString();
+// 解析人类输入转链上单位
 const parse = (val, dec = decimals) => {
   try { return ethers.utils.parseUnits(val, dec); } catch { return ethers.BigNumber.from(0); }
 };
 
 window.addEventListener('load', async () => {
-  const saved = localStorage.getItem('crc_panel_v21');
+  const saved = localStorage.getItem('crc_panel_v22');
   if (saved) contractInput.value = saved;
   if (window.ethereum) {
     provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -122,8 +234,8 @@ connectBtn.onclick = async () => {
 loadBtn.onclick = async () => {
   const addr = contractInput.value.trim();
   if (!ethers.utils.isAddress(addr)) return showError('无效地址');
-  localStorage.setItem('crc_panel_v21', addr);
-  contract = new ethers.Contract(addr, ABI, signer || provider);
+  localStorage.setItem('crc_panel_v22', addr);
+  contract = new ethers.Contract(addr, contractABI, signer || provider);
   try {
     ownerAddress = await contract.owner();
     decimals = (await contract.decimals()).toNumber();
@@ -168,7 +280,7 @@ async function renderTabContent(tab) {
   } catch (e) { content.innerHTML = `<div class="error">错误: ${e.message}</div>`; }
 }
 
-// ==================== 自动转换的渲染函数 ====================
+// ==================== 各标签渲染函数 ====================
 async function overviewHTML() {
   const [name, sym, total, owner, pair, fund, router, coin, start, isEth] = await Promise.all([
     contract.name(), contract.symbol(), contract.totalSupply(), contract.owner(), contract._mainPair(),
@@ -236,6 +348,25 @@ async function feesHTML() {
       <div class="field"><label>antiSYNC</label><select id="antiSync_i"><option value="true" ${anti?'selected':''}>开</option><option value="false" ${!anti?'selected':''}>关</option></select><button id="setAntiSyncBtn">应用</button></div>
     </div>
     <div class="info-text">举例：买入1000枚，买基金2%买LP2%买烧1% → 扣20,20,10，到账950</div>`;
+}
+
+async function listsHTML() {
+  return `
+    <div class="card"><h3>名单查询</h3>
+      <div class="row"><input id="listAddr" placeholder="0x..."><button id="queryListBtn">查询</button></div>
+      <div id="listResult" class="info-text"></div>
+    </div>
+    <div class="card"><h3>批量白名单</h3>
+      <div class="info-text">地址用逗号或换行分隔</div>
+      <div class="row"><textarea id="feeAddrs" rows="2"></textarea><select id="feeEnable"><option value="true">加入</option><option value="false">移除</option></select><button id="setFeeListBtn">执行</button></div>
+    </div>
+    <div class="card"><h3>奖励黑名单 (multi_bclist)</h3>
+      <div class="info-text">最多200个地址</div>
+      <div class="row"><textarea id="bcAddrs" rows="2"></textarea><select id="bcEnable"><option value="true">加入</option><option value="false">移除</option></select><button id="setBcListBtn">执行</button></div>
+    </div>
+    <div class="card"><h3>交易对列表</h3>
+      <div class="row"><input id="pairAddr_i" placeholder="交易对地址"><select id="pairEnable_i"><option value="true">启用</option><option value="false">禁用</option></select><button id="setPairBtn">设置</button></div>
+    </div>`;
 }
 
 async function inviteHTML() {
@@ -396,10 +527,11 @@ async function queryHTML() {
     </div>`;
 }
 
-// ==================== 事件绑定（自动转换输入） ====================
+// ==================== 事件绑定（完整） ====================
 function bindEvents(tab) {
   const $$ = (id, handler) => { const el = document.getElementById(id); if(el) el.onclick = handler; };
 
+  // 概览
   $$('transferOwnerBtn', async () => { if(!checkOwner()) return; const addr = document.getElementById('newOwner').value; if(!ethers.utils.isAddress(addr)) return alert('无效地址'); await sendTx(contract.transferOwnership(addr)); });
   $$('renounceOwnerBtn', async () => { if(!checkOwner()) return; if(!confirm('确定放弃？')) return; await sendTx(contract.renounceOwnership()); });
 
@@ -420,6 +552,40 @@ function bindEvents(tab) {
   $$('setAntiSyncBtn', async () => {
     if(!checkOwner()) return;
     await sendTx(contract.setAntiSYNCEnable(document.getElementById('antiSync_i').value === 'true'));
+  });
+
+  // 名单
+  $$('queryListBtn', async () => {
+    const addr = document.getElementById('listAddr').value;
+    if(!ethers.utils.isAddress(addr)) return;
+    const [fw, rw, sp, inv, lp] = await Promise.all([
+      contract._feeWhiteList(addr), contract._rewardList(addr), contract._swapPairList(addr),
+      contract._inviter(addr), contract._userLPAmount(addr)
+    ]);
+    document.getElementById('listResult').innerHTML = `白名单:${fw} 黑名单:${rw} 交易对:${sp} 邀请人:${inv||'无'} LP:${fmt(lp)}`;
+  });
+  $$('setFeeListBtn', async () => {
+    if(!checkOwner()) return;
+    const text = document.getElementById('feeAddrs').value;
+    const addrs = text.split(/[,\n]+/).filter(a => ethers.utils.isAddress(a.trim()));
+    if(!addrs.length) return alert('无有效地址');
+    const enable = document.getElementById('feeEnable').value === 'true';
+    await sendTx(contract.setFeeWhiteList(addrs, enable));
+  });
+  $$('setBcListBtn', async () => {
+    if(!checkOwner()) return;
+    const text = document.getElementById('bcAddrs').value;
+    const addrs = text.split(/[,\n]+/).filter(a => ethers.utils.isAddress(a.trim()));
+    if(addrs.length===0 || addrs.length>200) return alert('地址数1-200');
+    const enable = document.getElementById('bcEnable').value === 'true';
+    await sendTx(contract.multi_bclist(addrs, enable));
+  });
+  $$('setPairBtn', async () => {
+    if(!checkOwner()) return;
+    const addr = document.getElementById('pairAddr_i').value;
+    if(!ethers.utils.isAddress(addr)) return alert('无效地址');
+    const en = document.getElementById('pairEnable_i').value === 'true';
+    await sendTx(contract.setSwapPairList(addr, en));
   });
 
   // 邀请
